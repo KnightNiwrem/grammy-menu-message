@@ -1,12 +1,14 @@
 /**
- * grammY Text Vault Plugin - A StorageAdapter-based Plugin Template
+ * grammY Menu Message - Menu system for Telegram bots
  *
- * This plugin demonstrates how to build a grammY plugin that uses the
- * StorageAdapter interface for persistent data storage. It implements a
- * text vault where users can save, list, and delete text entries.
+ * This module provides a Menu class for creating inline keyboard menus
+ * with automatic callback_data management and middleware handling.
  *
  * @module
  */
+
+export { Menu } from "./menu.ts";
+export type { MenuButtonCallback } from "./menu.ts";
 
 export { vault } from "./plugin.ts";
 export type {

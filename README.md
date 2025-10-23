@@ -1,144 +1,231 @@
-# grammY Storage Adapter Plugin Template
+# grammY Menu Message
 
-This repository provides a template for creating grammY plugins that leverage the `StorageAdapter` interface for data persistence. It includes a complete example of a "text vault" plugin, demonstrating how to store, retrieve, and manage user-specific data.
+A menu system for Telegram bots built with [grammY](https://grammy.dev/). Create inline keyboard menus with automatic callback data management and simple middleware handling.
 
-## Overview
+## Features
 
-This template is designed to help you build your own grammY storage-based plugins. The included `vault` plugin serves as a practical example, showcasing the following capabilities:
-
-- **Storage Agnostic**: Works with any `StorageAdapter` implementation from grammY.
-- **User-Specific Data**: Demonstrates how to handle data storage on a per-user basis.
-- **CRUD Operations**: Provides a full example of creating, reading, updating, and deleting data.
-- **TypeScript Support**: The code is fully typed.
-- **Testing**: Includes a comprehensive test suite.
+- **Simple API**: Easy-to-use `Menu` class for creating inline keyboards
+- **Automatic Callback Management**: Automatically generates and handles `callback_data` in the format `<menu_id>:<row>:<column>`
+- **Type-Safe**: Full TypeScript support with proper typing
+- **Chainable**: Fluent API for building menus
+- **Middleware Integration**: Seamless integration with grammY's middleware system
 
 ## Quick Start
 
-To use the `vault` plugin in your bot, you need to install and configure it with a storage adapter.
+### Installation
 
 ```typescript
-import { Bot, MemorySessionStorage } from "grammy";
-import { vault, type VaultData } from "./src/mod.ts";
+import { Menu } from "https://deno.land/x/grammy_menu_message/mod.ts";
+// or from JSR (when published)
+// import { Menu } from "jsr:@your-scope/grammy-menu-message";
+```
+
+### Basic Usage
+
+```typescript
+import { Bot } from "grammy";
+import { Menu } from "./src/mod.ts";
 
 const bot = new Bot("YOUR_BOT_TOKEN");
 
-// Install the vault plugin with a storage adapter
-bot.use(vault({
-  storage: new MemorySessionStorage<VaultData>(),
-}));
+// Create a menu
+const menu = new Menu("main");
 
-// Example: Save text to the vault
-bot.command("save", (ctx) => {
-  const text = ctx.match;
-  if (!text) return ctx.reply("Please provide text to save.");
+// Add buttons
+menu.text("Option 1", async (ctx) => {
+  await ctx.reply("You chose option 1!");
+});
 
-  ctx.vault.entries.push({
-    id: crypto.randomUUID(),
-    text,
-    createdAt: Date.now(),
+menu.text("Option 2", async (ctx) => {
+  await ctx.reply("You chose option 2!");
+});
+
+// Start a new row
+menu.row();
+
+// Add more buttons
+menu.text("Cancel", async (ctx) => {
+  await ctx.editMessageText("Cancelled.");
+});
+
+// Register the menu middleware
+bot.use(menu.middleware());
+
+// Send the menu
+bot.command("start", async (ctx) => {
+  await ctx.reply("Choose an option:", {
+    reply_markup: { inline_keyboard: menu.inline_keyboard },
   });
-  ctx.reply("Saved to your vault!");
-});
-
-// Example: List all entries
-bot.command("list", (ctx) => {
-  if (ctx.vault.entries.length === 0) {
-    return ctx.reply("Your vault is empty.");
-  }
-  const list = ctx.vault.entries
-    .map((e, i) => `${i + 1}. ${e.text}`)
-    .join("\n");
-  ctx.reply(`Your vault:\n\n${list}`);
-});
-
-// Example: Delete an entry
-bot.command("delete", (ctx) => {
-  const id = ctx.match;
-  const index = ctx.vault.entries.findIndex((e) => e.id.startsWith(id));
-  if (index === -1) return ctx.reply("Entry not found.");
-  ctx.vault.entries.splice(index, 1);
-  ctx.reply("Deleted!");
 });
 
 bot.start();
 ```
 
-## Running the Example
+## API Reference
 
-An example bot is provided in `example.ts`. To run it:
+### `Menu<C extends Context>`
 
-1. Set your bot token as an environment variable:
+The main class for creating inline keyboard menus.
+
+#### Constructor
+
+```typescript
+new Menu(id: string)
+```
+
+Creates a new menu with a unique identifier.
+
+**Parameters:**
+
+- `id` - A unique identifier for this menu (used in callback_data generation)
+
+#### Methods
+
+##### `text(label: string, callback: MenuButtonCallback<C>): this`
+
+Adds a text button to the current row.
+
+**Parameters:**
+
+- `label` - The button label displayed to users
+- `callback` - Function to call when the button is clicked
+
+**Returns:** The menu instance for method chaining
+
+##### `row(): this`
+
+Starts a new row of buttons.
+
+**Returns:** The menu instance for method chaining
+
+##### `middleware(): MiddlewareFn<C>`
+
+Creates middleware that handles callback queries for this menu.
+
+**Returns:** Middleware function to register with `bot.use()`
+
+#### Properties
+
+##### `inline_keyboard: InlineKeyboardButton[][]`
+
+Gets the inline keyboard structure ready to be used with Telegram API methods.
+
+**Returns:** 2D array of InlineKeyboardButton objects
+
+## Examples
+
+### Multi-Level Menu
+
+```typescript
+const mainMenu = new Menu("main");
+const settingsMenu = new Menu("settings");
+
+// Main menu
+mainMenu.text("⚙️ Settings", async (ctx) => {
+  await ctx.editMessageText("Settings:", {
+    reply_markup: { inline_keyboard: settingsMenu.inline_keyboard },
+  });
+});
+
+mainMenu.text("ℹ️ Info", async (ctx) => {
+  await ctx.editMessageText("Bot information...");
+});
+
+// Settings submenu
+settingsMenu.text("🔔 Notifications", async (ctx) => {
+  await ctx.reply("Toggle notifications");
+});
+
+settingsMenu.text("🌐 Language", async (ctx) => {
+  await ctx.reply("Select language");
+});
+
+settingsMenu.row();
+
+settingsMenu.text("« Back", async (ctx) => {
+  await ctx.editMessageText("Main menu:", {
+    reply_markup: { inline_keyboard: mainMenu.inline_keyboard },
+  });
+});
+
+// Register both menus
+bot.use(mainMenu.middleware());
+bot.use(settingsMenu.middleware());
+```
+
+### Grid Layout
+
+```typescript
+const menu = new Menu("grid");
+
+// First row
+menu.text("1", (ctx) => ctx.reply("Button 1"));
+menu.text("2", (ctx) => ctx.reply("Button 2"));
+menu.text("3", (ctx) => ctx.reply("Button 3"));
+
+// Second row
+menu.row();
+menu.text("4", (ctx) => ctx.reply("Button 4"));
+menu.text("5", (ctx) => ctx.reply("Button 5"));
+menu.text("6", (ctx) => ctx.reply("Button 6"));
+
+// Third row
+menu.row();
+menu.text("7", (ctx) => ctx.reply("Button 7"));
+menu.text("8", (ctx) => ctx.reply("Button 8"));
+menu.text("9", (ctx) => ctx.reply("Button 9"));
+```
+
+### Running the Examples
+
+A complete example is provided in `examples/menu.ts`. To run it:
+
+1. Set your bot token:
    ```bash
    export BOT_TOKEN="your-token-here"
    ```
-2. Run the example file:
+
+2. Run the example:
    ```bash
-   deno run --allow-net --allow-env example.ts
+   deno run --allow-net --allow-env examples/menu.ts
    ```
 
-The example bot supports the following commands: `/start`, `/save <text>`, `/list`, `/delete <id>`, `/clear`, and `/count`.
+## How It Works
 
-## Persistent Storage
+### Callback Data Format
 
-This plugin template is compatible with any `StorageAdapter`. Here are a few examples using storage adapters from `@grammyjs/storage`:
+The Menu class automatically generates `callback_data` for each button in the format:
 
-```typescript
-// PostgreSQL
-import { PostgresAdapter } from "@grammyjs/storage-postgres";
-bot.use(vault({
-  storage: new PostgresAdapter({
-    host: "localhost",
-    database: "mybot",
-  }),
-}));
-
-// Redis
-import { RedisAdapter } from "@grammyjs/storage-redis";
-bot.use(vault({
-  storage: new RedisAdapter({ url: "redis://localhost:6379" }),
-}));
-
-// File System
-import { FileAdapter } from "@grammyjs/storage-file";
-bot.use(vault({
-  storage: new FileAdapter({ dirName: "vault-data" }),
-}));
+```
+<menu_id>:<row_index>:<column_index>
 ```
 
-## Customization
+For example:
 
-### Data Structure
+- `main:0:0` - First button in the first row of the "main" menu
+- `main:0:1` - Second button in the first row
+- `main:1:0` - First button in the second row
 
-You can modify the data structure stored by the plugin by editing the `VaultData` interface in `src/plugin.ts`.
+### Middleware Handling
 
-```typescript
-export interface VaultData {
-  entries: VaultEntry[];
-  // Add your own properties here
-}
-```
+When a user clicks a button, the middleware:
 
-### Storage Key
-
-By default, data is stored on a per-user basis. You can change this behavior by providing a `getStorageKey` function.
-
-```typescript
-// Store data per chat
-bot.use(vault({
-  storage: myStorage,
-  getStorageKey: (ctx) => ctx.chat?.id.toString(),
-}));
-```
+1. Intercepts the callback query
+2. Parses the `callback_data` to extract menu ID, row, and column
+3. Verifies the callback belongs to this menu
+4. Finds the corresponding button handler
+5. Answers the callback query (removes loading state)
+6. Invokes the button's callback function
 
 ## Development
 
-This project includes several Deno tasks to help with development:
+This project uses Deno and includes several development tasks:
 
-- `deno task fmt`: Format the code.
-- `deno task lint`: Lint the code.
-- `deno task test`: Run the test suite.
-- `deno task check`: Type-check the code.
-- `deno task ok`: Run all checks.
+- `deno task fmt` - Format the code
+- `deno task lint` - Lint the code
+- `deno task test` - Run the test suite
+- `deno task check` - Type-check the code
+- `deno task ok` - Run all checks (format, lint, test, check)
 
 ## Project Structure
 
@@ -146,14 +233,18 @@ This project includes several Deno tasks to help with development:
 .
 ├── src/
 │   ├── mod.ts          # Main exports
-│   └── plugin.ts       # Vault plugin implementation
+│   ├── menu.ts         # Menu class implementation
+│   └── plugin.ts       # Vault plugin (legacy)
 ├── test/
-│   └── plugin_test.ts  # Test suite
-├── example.ts          # Example bot
+│   ├── menu_test.ts    # Menu tests
+│   └── plugin_test.ts  # Plugin tests
+├── examples/
+│   ├── menu.ts         # Menu example
+│   └── basic.ts        # Vault example
 ├── deno.json           # Deno configuration
 └── README.md           # This file
 ```
 
 ## License
 
-This project is licensed under the MIT License.
+MIT License

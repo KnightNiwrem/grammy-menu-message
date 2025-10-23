@@ -8,7 +8,12 @@
 
 import { Bot, MemorySessionStorage } from "grammy";
 import type { Context } from "grammy";
-import { vault, type VaultData, type VaultEntry, type VaultFlavor } from "../src/mod.ts";
+import {
+  vault,
+  type VaultData,
+  type VaultEntry,
+  type VaultFlavor,
+} from "../src/mod.ts";
 
 type VaultContext = Context & VaultFlavor;
 
