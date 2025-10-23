@@ -1,12 +1,5 @@
 import type { Context, MiddlewareFn } from "grammy";
-
-/**
- * Represents an inline keyboard button.
- */
-interface InlineKeyboardButton {
-  text: string;
-  callback_data: string;
-}
+import type { InlineKeyboardButton } from "grammy/types";
 
 /**
  * Callback function for menu button clicks.
