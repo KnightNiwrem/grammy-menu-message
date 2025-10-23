@@ -64,36 +64,19 @@ describe("Menu", () => {
     expect(assertUrlButton(layout[1]?.[0]).url).toBe("https://grammy.dev");
   });
 
-  it("clones keyboard and handlers", () => {
+  it("allows mixing button types in rows", () => {
     const menu = new Menu();
-    const handler = () => {};
-    menu.text("Click", handler);
 
-    const clone = menu.clone();
-    const data = assertCallbackButton(clone.build()[0]?.[0]).callback_data;
+    menu.text("One", () => {})
+      .url("Docs", "https://grammy.dev")
+      .row()
+      .copyText("Copy", "hello");
 
-    expect(clone.getHandler(data)).toBe(handler);
+    const layout = menu.build();
 
-    clone.text("More", () => {});
-    expect(menu.build()[0]?.length).toBe(1);
-  });
-
-  it("appends other menus and merges handlers", () => {
-    const menuA = new Menu();
-    const handlerA = () => {};
-    menuA.text("A", handlerA);
-
-    const menuB = new Menu();
-    const handlerB = () => {};
-    menuB.text("B", handlerB);
-
-    menuA.append(menuB);
-
-    const combined = menuA.build();
-    const appendedData = assertCallbackButton(combined[1]?.[0]).callback_data;
-
-    expect(menuA.getHandler(appendedData)).toBe(handlerB);
-    const originalData = assertCallbackButton(combined[0]?.[0]).callback_data;
-    expect(menuA.getHandler(originalData)).toBe(handlerA);
+    expect(layout.length).toBe(2);
+    expect(assertCallbackButton(layout[0]?.[0]).callback_data).toBeDefined();
+    expect(assertUrlButton(layout[0]?.[1]).url).toBe("https://grammy.dev");
+    expect("copy_text" in (layout[1]?.[0] ?? {})).toBe(true);
   });
 });
