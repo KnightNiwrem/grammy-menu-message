@@ -1,21 +1,16 @@
+import type { Context, MiddlewareFn } from "grammy";
 import { InlineKeyboard } from "grammy";
 
 /**
- * Callback function type for menu buttons.
- * Receives the callback_data as a parameter.
- */
-export type MenuCallback = (data: string) => void | Promise<void>;
-
-/**
- * Menu class that wraps grammY's InlineKeyboard with callback support.
+ * Menu class that wraps grammY's InlineKeyboard with middleware callback support.
  *
  * This class maintains an InlineKeyboard instance and a mapping of
- * self-generated callback_data to user-provided callback functions.
+ * self-generated callback_data to user-provided middleware functions.
  * It exposes the same methods as InlineKeyboard for adding buttons and rows.
  */
 export class Menu {
   private keyboard: InlineKeyboard;
-  private callbackMap: Map<string, MenuCallback>;
+  private callbackMap: Map<string, MiddlewareFn<Context>>;
   private callbackCounter: number;
 
   constructor() {
@@ -25,14 +20,14 @@ export class Menu {
   }
 
   /**
-   * Add a text button with a callback function.
-   * Instead of callback_data, accepts a callback function.
+   * Add a text button with a middleware callback function.
+   * Instead of callback_data, accepts a middleware function.
    *
    * @param text - The button text
-   * @param callback - The function to execute when button is pressed
+   * @param callback - The middleware function to execute when button is pressed
    * @returns This Menu instance for chaining
    */
-  text(text: string, callback: MenuCallback): this {
+  text(text: string, callback: MiddlewareFn<Context>): this {
     const callbackData = this.generateCallbackData();
     this.callbackMap.set(callbackData, callback);
     this.keyboard.text(text, callbackData);
@@ -203,9 +198,9 @@ export class Menu {
   /**
    * Get the callback mapping.
    *
-   * @returns The Map of callback_data to callback functions
+   * @returns The Map of callback_data to middleware functions
    */
-  getCallbackMap(): Map<string, MenuCallback> {
+  getCallbackMap(): Map<string, MiddlewareFn<Context>> {
     return this.callbackMap;
   }
 
@@ -213,9 +208,9 @@ export class Menu {
    * Get a callback function by its callback_data.
    *
    * @param callbackData - The callback data to look up
-   * @returns The callback function or undefined if not found
+   * @returns The middleware function or undefined if not found
    */
-  getCallback(callbackData: string): MenuCallback | undefined {
+  getCallback(callbackData: string): MiddlewareFn<Context> | undefined {
     return this.callbackMap.get(callbackData);
   }
 
