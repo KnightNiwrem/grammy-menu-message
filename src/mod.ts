@@ -8,6 +8,7 @@
  * @module
  */
 
+export { Menu } from "./menu.ts";
 export { vault } from "./plugin.ts";
 export type {
   VaultData,
