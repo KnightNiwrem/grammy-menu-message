@@ -16,3 +16,6 @@ export type {
   VaultOptions,
 } from "./plugin.ts";
 export type { StorageAdapter } from "grammy";
+
+export { Menu } from "./menu.ts";
+export type { MenuCallback } from "./menu.ts";
