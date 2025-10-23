@@ -1,4 +1,3 @@
-import type { InlineKeyboard as IInlineKeyboard } from "grammy";
 import { InlineKeyboard } from "grammy";
 
 /**
@@ -197,7 +196,7 @@ export class Menu {
    *
    * @returns The InlineKeyboard instance
    */
-  getKeyboard(): IInlineKeyboard {
+  getKeyboard(): InlineKeyboard {
     return this.keyboard;
   }
 
