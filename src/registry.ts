@@ -88,14 +88,23 @@ export class MenuRegistry {
     this.renderedMenus.set(renderedMenuId, renderedMenu);
 
     if (this.storage) {
-      Promise.resolve(this.storage.write(renderedMenuId, templateId)).catch(
-        (err) => {
-          console.error(`Failed to persist rendered menu mapping: ${err}`);
-        },
-      );
+      this.persistMenuMapping(renderedMenuId, templateId);
     }
 
     return renderedMenu;
+  }
+
+  private async persistMenuMapping(
+    renderedMenuId: string,
+    templateId: string,
+  ): Promise<void> {
+    try {
+      if (this.storage) {
+        await this.storage.write(renderedMenuId, templateId);
+      }
+    } catch (err) {
+      console.error(`Failed to persist rendered menu mapping: ${err}`);
+    }
   }
 
   /**
