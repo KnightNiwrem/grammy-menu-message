@@ -98,7 +98,14 @@ export class MenuRegistry {
     this.renderedToTemplateId.set(renderedMenuId, templateId);
 
     if (this.storage) {
-      await this.persistMappingsToStorage();
+      try {
+        await this.persistMappingsToStorage();
+      } catch (err) {
+        // Rollback in-memory state on storage failure to maintain consistency
+        this.renderedMenus.delete(renderedMenuId);
+        this.renderedToTemplateId.delete(renderedMenuId);
+        throw err;
+      }
     }
 
     return renderedMenu;
