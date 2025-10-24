@@ -16,6 +16,7 @@
     "@std/expect": "jsr:@std/expect@^1",
     "@std/testing": "jsr:@std/testing@^1",
     "grammy": "https://lib.deno.dev/x/grammy@v1/mod.ts",
-    "grammy/types": "https://lib.deno.dev/x/grammy@v1/types.ts"
+    "grammy/types": "https://lib.deno.dev/x/grammy@v1/types.ts",
+    "nanoid": "npm:nanoid"
   }
 }

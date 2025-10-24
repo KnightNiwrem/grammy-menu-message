@@ -37,4 +37,12 @@ export class Menu {
     }
     return this.middlewareMap.get(callbackData);
   }
+
+  /**
+   * Gets all middleware entries from this menu.
+   * @returns An array of [callbackData, middleware] tuples
+   */
+  getMiddlewareEntries(): Array<[string, MiddlewareFn]> {
+    return Array.from(this.middlewareMap.entries());
+  }
 }
