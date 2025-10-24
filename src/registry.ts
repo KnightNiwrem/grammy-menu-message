@@ -4,16 +4,25 @@ import { nanoid } from "nanoid";
 import type { MenuTemplate } from "./template.ts";
 import type { Menu } from "./menu.ts";
 
+export interface StorageAdapter<V> {
+  read(key: string): Promise<V | undefined>;
+  write(key: string, value: V): Promise<void>;
+  delete(key: string): Promise<void>;
+}
+
 /**
  * MenuRegistry manages registered menu templates indexed by their template IDs.
  * Allows users to register and retrieve MenuTemplate instances.
+ * When provided with a StorageAdapter, persists rendered menu ID to template ID mappings.
  */
 export class MenuRegistry {
   private templates: Map<string, MenuTemplate> = new Map();
   private renderedMenus: Map<string, Menu> = new Map();
   private composer: Composer<Context>;
+  private storage: StorageAdapter<string> | undefined;
 
-  constructor() {
+  constructor(storage?: StorageAdapter<string>) {
+    this.storage = storage;
     this.composer = new Composer<Context>();
     this.composer.on("callback_query").lazy(
       (ctx): Promise<MiddlewareFn<Context>> => {
@@ -70,6 +79,7 @@ export class MenuRegistry {
 
   /**
    * Renders a menu from a registered template and appends it to the internal registry.
+   * If storage adapter is provided, persists the rendered menu ID to template ID mapping.
    * @param templateId The unique identifier of the menu template to render
    * @returns The rendered Menu instance, or undefined if template not found
    */
@@ -82,6 +92,12 @@ export class MenuRegistry {
     const renderedMenuId = nanoid();
     const renderedMenu = template.render(renderedMenuId);
     this.renderedMenus.set(renderedMenuId, renderedMenu);
+
+    if (this.storage) {
+      this.storage.write(renderedMenuId, templateId).catch((err) => {
+        console.error(`Failed to persist rendered menu mapping: ${err}`);
+      });
+    }
 
     return renderedMenu;
   }
