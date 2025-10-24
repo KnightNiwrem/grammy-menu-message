@@ -115,11 +115,23 @@ export class MenuRegistry {
       return;
     }
 
-    // Mark storage as loaded. grammY's StorageAdapter interface provides
-    // read(key), write(key, value), delete(key) but no key enumeration.
-    // To fully restore all persisted menu mappings on startup, a custom adapter
-    // or bulk restoration mechanism would be needed.
-    await Promise.resolve();
+    // Use readAllEntries if available to restore persisted menu mappings
+    if (this.storage.readAllEntries) {
+      try {
+        for await (
+          const [renderedMenuId, templateId] of this.storage.readAllEntries()
+        ) {
+          const template = this.get(templateId);
+          if (template) {
+            const renderedMenu = template.render(renderedMenuId);
+            this.renderedMenus.set(renderedMenuId, renderedMenu);
+          }
+        }
+      } catch (err) {
+        throw new Error(`Failed to load menu mappings from storage: ${err}`);
+      }
+    }
+
     this.storageLoaded = true;
   }
 }
