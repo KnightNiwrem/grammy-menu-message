@@ -14,23 +14,29 @@ export class MenuRegistry {
   private renderedMenus: Map<string, Menu> = new Map();
   private composer: Composer<Context>;
   private storage: StorageAdapter<string> | undefined;
+  private storageLoaded = false;
 
   constructor(storage?: StorageAdapter<string>) {
     this.storage = storage;
     this.composer = new Composer<Context>();
     this.composer.on("callback_query").lazy(
-      (ctx): Promise<MiddlewareFn<Context>> => {
+      async (ctx): Promise<MiddlewareFn<Context>> => {
         const callbackData = ctx.callbackQuery?.data;
         if (!callbackData) {
-          return Promise.resolve((_ctx, next) => next());
+          return (_ctx, next) => next();
         }
+
+        if (!this.storageLoaded) {
+          await this.loadMenuMappingsFromStorage();
+        }
+
         for (const menu of this.renderedMenus.values()) {
           const middleware = menu.getMiddleware(callbackData);
           if (middleware) {
-            return Promise.resolve(middleware);
+            return middleware;
           }
         }
-        return Promise.resolve((_ctx, next) => next());
+        return (_ctx, next) => next();
       },
     );
   }
@@ -101,5 +107,19 @@ export class MenuRegistry {
    */
   middleware(): MiddlewareFn<Context> {
     return this.composer.middleware();
+  }
+
+  private async loadMenuMappingsFromStorage(): Promise<void> {
+    if (!this.storage) {
+      this.storageLoaded = true;
+      return;
+    }
+
+    // Mark storage as loaded. grammY's StorageAdapter interface provides
+    // read(key), write(key, value), delete(key) but no key enumeration.
+    // To fully restore all persisted menu mappings on startup, a custom adapter
+    // or bulk restoration mechanism would be needed.
+    await Promise.resolve();
+    this.storageLoaded = true;
   }
 }
