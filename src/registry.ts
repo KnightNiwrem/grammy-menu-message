@@ -15,23 +15,20 @@ export class MenuRegistry {
 
   constructor() {
     this.composer = new Composer<Context>();
-    this.composer.on(
-      "callback_query",
-      this.composer.lazy(
-        (ctx): Promise<MiddlewareFn<Context>> => {
-          const callbackData = ctx.callbackQuery?.data;
-          if (!callbackData) {
-            return Promise.resolve((_ctx, next) => next());
-          }
-          for (const menu of this.renderedMenus.values()) {
-            const middleware = menu.getMiddleware(callbackData);
-            if (middleware) {
-              return Promise.resolve(middleware);
-            }
-          }
+    this.composer.on("callback_query").lazy(
+      (ctx): Promise<MiddlewareFn<Context>> => {
+        const callbackData = ctx.callbackQuery?.data;
+        if (!callbackData) {
           return Promise.resolve((_ctx, next) => next());
-        },
-      ),
+        }
+        for (const menu of this.renderedMenus.values()) {
+          const middleware = menu.getMiddleware(callbackData);
+          if (middleware) {
+            return Promise.resolve(middleware);
+          }
+        }
+        return Promise.resolve((_ctx, next) => next());
+      },
     );
   }
 
