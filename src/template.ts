@@ -210,6 +210,7 @@ export class MenuTemplate {
   render(renderedMenuId: string): Menu {
     const rows: RowDef[] = [];
     let currentRow: RowDef = [];
+    const middlewareMap: Map<string, MiddlewareFn> = new Map();
 
     for (const op of this.operations) {
       if (op.type === "button") {
@@ -222,6 +223,7 @@ export class MenuTemplate {
           text: op.label,
           callback_data: callbackData,
         });
+        middlewareMap.set(callbackData, op.middleware);
       } else if (op.type === "row") {
         if (currentRow.length > 0) {
           rows.push(currentRow);
@@ -234,6 +236,6 @@ export class MenuTemplate {
       rows.push(currentRow);
     }
 
-    return new Menu(rows);
+    return new Menu(renderedMenuId, rows, middlewareMap);
   }
 }
