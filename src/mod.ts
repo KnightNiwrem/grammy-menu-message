@@ -10,11 +10,3 @@
 export { Menu } from "./menu.ts";
 export { MenuTemplate } from "./template.ts";
 export { MenuRegistry } from "./registry.ts";
-export { vault } from "./plugin.ts";
-export type {
-  VaultData,
-  VaultEntry,
-  VaultFlavor,
-  VaultOptions,
-} from "./plugin.ts";
-export type { StorageAdapter } from "grammy";
