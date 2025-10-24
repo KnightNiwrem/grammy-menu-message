@@ -18,6 +18,11 @@
 - Tests: `deno test` using `describe`/`it` from `jsr:@std/testing/bdd` and assertions from `jsr:@std/expect`.
 - Add more task-specific commands here as they emerge (keep this list authoritative for agents).
 
+## Code Style
+
+- Prefer `async`/`await` over `Promise.then()`, `.catch()`, and `.resolve()` for better readability and error handling.
+- Never swallow errors or allow rejected promises to remain uncaught. Always propagate errors back to the user via thrown exceptions or rejected promises—never use silent error logging as a substitute for proper error handling.
+
 ## CI Certificate Handling
 
 - Local development must not add `--unsafely-ignore-certificate-errors` to default commands.

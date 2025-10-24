@@ -1,5 +1,5 @@
 import { Composer, Context } from "grammy";
-import type { MiddlewareFn } from "grammy";
+import type { MiddlewareFn, StorageAdapter } from "grammy";
 import { nanoid } from "nanoid";
 import type { MenuTemplate } from "./template.ts";
 import type { Menu } from "./menu.ts";
@@ -7,27 +7,38 @@ import type { Menu } from "./menu.ts";
 /**
  * MenuRegistry manages registered menu templates indexed by their template IDs.
  * Allows users to register and retrieve MenuTemplate instances.
+ * When provided with a StorageAdapter, persists rendered menu ID to template ID mappings.
  */
 export class MenuRegistry {
   private templates: Map<string, MenuTemplate> = new Map();
   private renderedMenus: Map<string, Menu> = new Map();
+  private renderedToTemplateId: Map<string, string> = new Map();
   private composer: Composer<Context>;
+  private storage: StorageAdapter<string> | undefined;
+  private storageLoaded = false;
+  private static readonly STORAGE_KEY = "__grammy_menu_registry_mappings__";
 
-  constructor() {
+  constructor(storage?: StorageAdapter<string>) {
+    this.storage = storage;
     this.composer = new Composer<Context>();
     this.composer.on("callback_query").lazy(
-      (ctx): Promise<MiddlewareFn<Context>> => {
+      async (ctx): Promise<MiddlewareFn<Context>> => {
         const callbackData = ctx.callbackQuery?.data;
         if (!callbackData) {
-          return Promise.resolve((_ctx, next) => next());
+          return (_ctx, next) => next();
         }
+
+        if (!this.storageLoaded) {
+          await this.loadMenuMappingsFromStorage();
+        }
+
         for (const menu of this.renderedMenus.values()) {
           const middleware = menu.getMiddleware(callbackData);
           if (middleware) {
-            return Promise.resolve(middleware);
+            return middleware;
           }
         }
-        return Promise.resolve((_ctx, next) => next());
+        return (_ctx, next) => next();
       },
     );
   }
@@ -70,10 +81,12 @@ export class MenuRegistry {
 
   /**
    * Renders a menu from a registered template and appends it to the internal registry.
+   * If storage adapter is provided, persists the rendered menu ID to template ID mapping.
    * @param templateId The unique identifier of the menu template to render
-   * @returns The rendered Menu instance, or undefined if template not found
+   * @returns Promise resolving to the rendered Menu instance, or undefined if template not found
+   * @throws If storage write operation fails
    */
-  menu(templateId: string): Menu | undefined {
+  async menu(templateId: string): Promise<Menu | undefined> {
     const template = this.get(templateId);
     if (!template) {
       return undefined;
@@ -82,6 +95,18 @@ export class MenuRegistry {
     const renderedMenuId = nanoid();
     const renderedMenu = template.render(renderedMenuId);
     this.renderedMenus.set(renderedMenuId, renderedMenu);
+    this.renderedToTemplateId.set(renderedMenuId, templateId);
+
+    if (this.storage) {
+      try {
+        await this.persistMappingsToStorage();
+      } catch (err) {
+        // Rollback in-memory state on storage failure to maintain consistency
+        this.renderedMenus.delete(renderedMenuId);
+        this.renderedToTemplateId.delete(renderedMenuId);
+        throw err;
+      }
+    }
 
     return renderedMenu;
   }
@@ -92,5 +117,49 @@ export class MenuRegistry {
    */
   middleware(): MiddlewareFn<Context> {
     return this.composer.middleware();
+  }
+
+  private async persistMappingsToStorage(): Promise<void> {
+    if (!this.storage) {
+      return;
+    }
+
+    try {
+      const mappingsObj = Object.fromEntries(this.renderedToTemplateId);
+      await this.storage.write(
+        MenuRegistry.STORAGE_KEY,
+        JSON.stringify(mappingsObj),
+      );
+    } catch (err) {
+      throw new Error(`Failed to persist menu mappings to storage: ${err}`);
+    }
+  }
+
+  private async loadMenuMappingsFromStorage(): Promise<void> {
+    if (!this.storage) {
+      this.storageLoaded = true;
+      return;
+    }
+
+    try {
+      const mappingsJson = await this.storage.read(
+        MenuRegistry.STORAGE_KEY,
+      );
+      if (mappingsJson) {
+        const mappings: Record<string, string> = JSON.parse(mappingsJson);
+        for (const [renderedMenuId, templateId] of Object.entries(mappings)) {
+          const template = this.get(templateId);
+          if (template) {
+            const renderedMenu = template.render(renderedMenuId);
+            this.renderedMenus.set(renderedMenuId, renderedMenu);
+            this.renderedToTemplateId.set(renderedMenuId, templateId);
+          }
+        }
+      }
+    } catch (err) {
+      throw new Error(`Failed to load menu mappings from storage: ${err}`);
+    }
+
+    this.storageLoaded = true;
   }
 }
