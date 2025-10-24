@@ -52,6 +52,7 @@
 - Redis: use image `redis:8`; interact via `npm:bullmq` and `npm:ioredis`.
 - Telegram bots: import `grammy` from `https://lib.deno.dev/x/grammy@v1/mod.ts`; avoid grammy sessions per project policy.
   - For grammy types, import from `https://lib.deno.dev/x/grammy@v1/types.ts` (never use `deno.land/x/grammy_types`).
+  - **Composer chaining:** The `.on()` method returns a chainable Composer. Use `composer.on("filter").lazy(fn)` instead of `composer.on("filter", composer.lazy(fn))` for cleaner code.
 - Record credentials securely (never commit secrets); provide mock values for tests.
 
 ## Docker & Deployment Notes
