@@ -204,10 +204,10 @@ export class MenuTemplate {
 
   /**
    * Renders the template into a Menu with a fresh inline keyboard instance.
-   * @param renderedMenuId Optional unique menu ID used to generate callback_data for cb buttons
+   * @param renderedMenuId Unique menu ID used to generate callback_data for cb buttons
    * @returns A Menu instance with newly constructed buttons
    */
-  render(renderedMenuId?: string): Menu {
+  render(renderedMenuId: string): Menu {
     const rows: RowDef[] = [];
     let currentRow: RowDef = [];
 
@@ -217,9 +217,7 @@ export class MenuTemplate {
       } else if (op.type === "cbButton") {
         const rowNum = rows.length;
         const colNum = currentRow.length;
-        const callbackData = renderedMenuId
-          ? `${renderedMenuId}:${rowNum}:${colNum}`
-          : `:${rowNum}:${colNum}`;
+        const callbackData = `${renderedMenuId}:${rowNum}:${colNum}`;
         currentRow.push({
           text: op.label,
           callback_data: callbackData,
