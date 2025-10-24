@@ -12,9 +12,11 @@ import type { Menu } from "./menu.ts";
 export class MenuRegistry {
   private templates: Map<string, MenuTemplate> = new Map();
   private renderedMenus: Map<string, Menu> = new Map();
+  private renderedToTemplateId: Map<string, string> = new Map();
   private composer: Composer<Context>;
   private storage: StorageAdapter<string> | undefined;
   private storageLoaded = false;
+  private static readonly STORAGE_KEY = "__grammy_menu_registry_mappings__";
 
   constructor(storage?: StorageAdapter<string>) {
     this.storage = storage;
@@ -93,9 +95,10 @@ export class MenuRegistry {
     const renderedMenuId = nanoid();
     const renderedMenu = template.render(renderedMenuId);
     this.renderedMenus.set(renderedMenuId, renderedMenu);
+    this.renderedToTemplateId.set(renderedMenuId, templateId);
 
     if (this.storage) {
-      await this.storage.write(renderedMenuId, templateId);
+      await this.persistMappingsToStorage();
     }
 
     return renderedMenu;
@@ -109,27 +112,45 @@ export class MenuRegistry {
     return this.composer.middleware();
   }
 
+  private async persistMappingsToStorage(): Promise<void> {
+    if (!this.storage) {
+      return;
+    }
+
+    try {
+      const mappingsObj = Object.fromEntries(this.renderedToTemplateId);
+      await this.storage.write(
+        MenuRegistry.STORAGE_KEY,
+        JSON.stringify(mappingsObj),
+      );
+    } catch (err) {
+      throw new Error(`Failed to persist menu mappings to storage: ${err}`);
+    }
+  }
+
   private async loadMenuMappingsFromStorage(): Promise<void> {
     if (!this.storage) {
       this.storageLoaded = true;
       return;
     }
 
-    // Use readAllEntries if available to restore persisted menu mappings
-    if (this.storage.readAllEntries) {
-      try {
-        for await (
-          const [renderedMenuId, templateId] of this.storage.readAllEntries()
-        ) {
+    try {
+      const mappingsJson = await this.storage.read(
+        MenuRegistry.STORAGE_KEY,
+      );
+      if (mappingsJson) {
+        const mappings: Record<string, string> = JSON.parse(mappingsJson);
+        for (const [renderedMenuId, templateId] of Object.entries(mappings)) {
           const template = this.get(templateId);
           if (template) {
             const renderedMenu = template.render(renderedMenuId);
             this.renderedMenus.set(renderedMenuId, renderedMenu);
+            this.renderedToTemplateId.set(renderedMenuId, templateId);
           }
         }
-      } catch (err) {
-        throw new Error(`Failed to load menu mappings from storage: ${err}`);
       }
+    } catch (err) {
+      throw new Error(`Failed to load menu mappings from storage: ${err}`);
     }
 
     this.storageLoaded = true;
