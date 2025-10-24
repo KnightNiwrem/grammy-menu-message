@@ -1,7 +1,8 @@
 import { Composer, Context } from "grammy";
-import type { NextFunction } from "grammy";
+import type { MiddlewareFn } from "grammy";
 import { nanoid } from "nanoid";
 import type { MenuTemplate } from "./template.ts";
+import type { Menu } from "./menu.ts";
 
 /**
  * MenuRegistry manages registered menu templates indexed by their template IDs.
@@ -9,6 +10,30 @@ import type { MenuTemplate } from "./template.ts";
  */
 export class MenuRegistry {
   private templates: Map<string, MenuTemplate> = new Map();
+  private renderedMenus: Map<string, Menu> = new Map();
+  private composer: Composer<Context>;
+
+  constructor() {
+    this.composer = new Composer<Context>();
+    this.composer.on(
+      "callback_query",
+      this.composer.lazy(
+        (ctx): Promise<MiddlewareFn<Context>> => {
+          const callbackData = ctx.callbackQuery?.data;
+          if (!callbackData) {
+            return Promise.resolve((_ctx, next) => next());
+          }
+          for (const menu of this.renderedMenus.values()) {
+            const middleware = menu.getMiddleware(callbackData);
+            if (middleware) {
+              return Promise.resolve(middleware);
+            }
+          }
+          return Promise.resolve((_ctx, next) => next());
+        },
+      ),
+    );
+  }
 
   /**
    * Registers a MenuTemplate with the given template ID.
@@ -47,11 +72,11 @@ export class MenuRegistry {
   }
 
   /**
-   * Renders a menu from a registered template and returns a Composer with its middleware.
+   * Renders a menu from a registered template and appends it to the internal registry.
    * @param templateId The unique identifier of the menu template to render
-   * @returns A Composer containing the menu's middleware handlers, or undefined if template not found
+   * @returns The rendered Menu instance, or undefined if template not found
    */
-  menu(templateId: string): Composer<Context> | undefined {
+  menu(templateId: string): Menu | undefined {
     const template = this.get(templateId);
     if (!template) {
       return undefined;
@@ -59,21 +84,16 @@ export class MenuRegistry {
 
     const renderedMenuId = nanoid();
     const renderedMenu = template.render(renderedMenuId);
-    const composer = new Composer<Context>();
+    this.renderedMenus.set(renderedMenuId, renderedMenu);
 
-    // Collect all middleware from the rendered menu into the composer
-    for (
-      const [callbackData, middleware] of renderedMenu.getMiddlewareEntries()
-    ) {
-      composer.on("callback_query", async (ctx, next: NextFunction) => {
-        if (ctx.callbackQuery.data === callbackData) {
-          await middleware(ctx, next);
-        } else {
-          await next();
-        }
-      });
-    }
+    return renderedMenu;
+  }
 
-    return composer;
+  /**
+   * Returns the middleware of the owned Composer.
+   * @returns The middleware function for handling callback queries
+   */
+  middleware(): MiddlewareFn<Context> {
+    return this.composer.middleware();
   }
 }
