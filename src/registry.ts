@@ -75,9 +75,10 @@ export class MenuRegistry {
    * Renders a menu from a registered template and appends it to the internal registry.
    * If storage adapter is provided, persists the rendered menu ID to template ID mapping.
    * @param templateId The unique identifier of the menu template to render
-   * @returns The rendered Menu instance, or undefined if template not found
+   * @returns Promise resolving to the rendered Menu instance, or undefined if template not found
+   * @throws If storage write operation fails
    */
-  menu(templateId: string): Menu | undefined {
+  async menu(templateId: string): Promise<Menu | undefined> {
     const template = this.get(templateId);
     if (!template) {
       return undefined;
@@ -88,23 +89,10 @@ export class MenuRegistry {
     this.renderedMenus.set(renderedMenuId, renderedMenu);
 
     if (this.storage) {
-      this.persistMenuMapping(renderedMenuId, templateId);
+      await this.storage.write(renderedMenuId, templateId);
     }
 
     return renderedMenu;
-  }
-
-  private async persistMenuMapping(
-    renderedMenuId: string,
-    templateId: string,
-  ): Promise<void> {
-    try {
-      if (this.storage) {
-        await this.storage.write(renderedMenuId, templateId);
-      }
-    } catch (err) {
-      console.error(`Failed to persist rendered menu mapping: ${err}`);
-    }
   }
 
   /**
