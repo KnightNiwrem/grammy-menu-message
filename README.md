@@ -1,6 +1,6 @@
 # grammY Storage Adapter Plugin Template
 
-This repository provides a template for creating grammY plugins that leverage the `StorageAdapter` interface for data persistence. It includes a complete example of a "text vault" plugin, demonstrating how to store, retrieve, and manage user-specific data.
+This repository provides a grammY plugin for managing interactive menu messages with persistent storage support. It allows you to create dynamic menus that can be updated and navigated by users.
 
 ## Overview
 

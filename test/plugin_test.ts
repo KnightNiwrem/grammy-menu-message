@@ -24,7 +24,7 @@ const mockBotInfo = {
   has_main_web_app: false,
 };
 
-describe("Text Vault Plugin", () => {
+describe("Menu Message Plugin", () => {
   describe("Memory Storage", () => {
     let bot: Bot<VaultContext>;
 

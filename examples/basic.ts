@@ -1,5 +1,5 @@
 /**
- * Example bot demonstrating the text vault plugin.
+ * Example bot demonstrating the vault plugin.
  *
  * To run this example:
  * 1. Set your bot token: export BOT_TOKEN="your-token-here"
@@ -34,7 +34,7 @@ bot.use(vault({
 // Start command - show help
 bot.command("start", (ctx) => {
   ctx.reply(
-    "Welcome to Text Vault! 📝\n\n" +
+    "Welcome! 📝\n\n" +
       "Commands:\n" +
       "/save <text> - Save text to your vault\n" +
       "/list - Show all your saved texts\n" +
@@ -154,5 +154,5 @@ bot.on("message:text", (ctx) => {
   );
 });
 
-console.log("Text Vault bot is running...");
+console.log("Bot is running...");
 bot.start();

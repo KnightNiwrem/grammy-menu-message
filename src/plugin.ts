@@ -10,25 +10,25 @@ export interface VaultEntry {
 }
 
 /**
- * Data stored by the text vault plugin for each user.
+ * Data stored by the plugin for each user.
  */
 export interface VaultData {
   entries: VaultEntry[];
 }
 
 /**
- * Context flavor that adds text vault functionality to the context object.
+ * Context flavor that adds vault functionality to the context object.
  */
 export interface VaultFlavor {
   /**
-   * Text vault data for the current user.
-   * Contains all stored text entries.
+   * Vault data for the current user.
+   * Contains all stored entries.
    */
   vault: VaultData;
 }
 
 /**
- * Options for configuring the text vault plugin.
+ * Options for configuring the vault plugin.
  */
 export interface VaultOptions<C extends Context = Context> {
   /**
@@ -71,9 +71,9 @@ function defaultGetStorageKey(ctx: Context): string | undefined {
 }
 
 /**
- * Creates middleware that adds a text vault storage to your bot.
+ * Creates middleware that adds vault storage to your bot.
  *
- * The text vault allows users to store, retrieve, and manage text entries.
+ * The vault allows users to store, retrieve, and manage entries.
  * Each user has their own vault that persists across bot restarts (when using
  * a persistent storage adapter).
  *
