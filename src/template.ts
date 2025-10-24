@@ -1,18 +1,26 @@
+import type {
+  CopyTextButton,
+  InlineKeyboardButton,
+  LoginUrl,
+  SwitchInlineQueryChosenChat,
+  WebAppInfo,
+} from "grammy/types";
 import { Menu } from "./menu.ts";
 
-type ButtonDef = { text: string; callback_data: string };
+type ButtonDef = InlineKeyboardButton;
 type RowDef = ButtonDef[];
+
+type Operation =
+  | { type: "button"; data: ButtonDef }
+  | { type: "row" };
 
 /**
  * MenuTemplate defines the structure of a menu using a builder pattern.
- * It provides methods to add callback buttons and organize them into rows.
+ * It provides methods to add buttons and organize them into rows.
  * Objects are created fresh on each render() call.
  */
 export class MenuTemplate {
-  private operations: Array<{
-    type: "button" | "row";
-    data?: ButtonDef;
-  }> = [];
+  private operations: Operation[] = [];
 
   /**
    * Adds a callback button to the current row.
@@ -24,6 +32,145 @@ export class MenuTemplate {
     this.operations.push({
       type: "button",
       data: { text: label, callback_data: callbackData },
+    });
+    return this;
+  }
+
+  /**
+   * Adds a URL button to the current row.
+   * @param text The text displayed on the button
+   * @param url HTTP or tg:// URL to be opened when the button is pressed
+   * @returns this for method chaining
+   */
+  url(text: string, url: string): this {
+    this.operations.push({
+      type: "button",
+      data: { text, url },
+    });
+    return this;
+  }
+
+  /**
+   * Adds a web app button to the current row.
+   * @param text The text displayed on the button
+   * @param url An HTTPS URL of a Web App to be opened with additional data
+   * @returns this for method chaining
+   */
+  webApp(text: string, url: string | WebAppInfo): this {
+    this.operations.push({
+      type: "button",
+      data: {
+        text,
+        web_app: typeof url === "string" ? { url } : url,
+      },
+    });
+    return this;
+  }
+
+  /**
+   * Adds a login button to the current row.
+   * @param text The text displayed on the button
+   * @param loginUrl The login URL as string or LoginUrl object
+   * @returns this for method chaining
+   */
+  login(text: string, loginUrl: string | LoginUrl): this {
+    this.operations.push({
+      type: "button",
+      data: {
+        text,
+        login_url: typeof loginUrl === "string" ? { url: loginUrl } : loginUrl,
+      },
+    });
+    return this;
+  }
+
+  /**
+   * Adds an inline query button to the current row.
+   * @param text The text displayed on the button
+   * @param query The optional inline query string to prefill
+   * @returns this for method chaining
+   */
+  switchInline(text: string, query = ""): this {
+    this.operations.push({
+      type: "button",
+      data: { text, switch_inline_query: query },
+    });
+    return this;
+  }
+
+  /**
+   * Adds an inline query button for the current chat to the current row.
+   * @param text The text displayed on the button
+   * @param query The optional inline query string to prefill
+   * @returns this for method chaining
+   */
+  switchInlineCurrent(text: string, query = ""): this {
+    this.operations.push({
+      type: "button",
+      data: { text, switch_inline_query_current_chat: query },
+    });
+    return this;
+  }
+
+  /**
+   * Adds an inline query button with chosen chat filter to the current row.
+   * @param text The text displayed on the button
+   * @param query The query object describing which chats can be picked
+   * @returns this for method chaining
+   */
+  switchInlineChosen(
+    text: string,
+    query: SwitchInlineQueryChosenChat = {},
+  ): this {
+    this.operations.push({
+      type: "button",
+      data: { text, switch_inline_query_chosen_chat: query },
+    });
+    return this;
+  }
+
+  /**
+   * Adds a copy text button to the current row.
+   * @param text The text displayed on the button
+   * @param copyText The text to be copied to the clipboard
+   * @returns this for method chaining
+   */
+  copyText(text: string, copyText: string | CopyTextButton): this {
+    this.operations.push({
+      type: "button",
+      data: {
+        text,
+        copy_text: typeof copyText === "string" ? { text: copyText } : copyText,
+      },
+    });
+    return this;
+  }
+
+  /**
+   * Adds a game button to the current row.
+   * This type of button must always be the first button in the first row.
+   * @param text The text displayed on the button
+   * @returns this for method chaining
+   */
+  game(text: string): this {
+    this.operations.push({
+      type: "button",
+      data: { text, callback_game: {} },
+    });
+    return this;
+  }
+
+  /**
+   * Adds a payment button to the current row.
+   * This type of button must always be the first button in the first row and
+   * can only be used in invoice messages.
+   * @param text The text displayed on the button
+   * @returns this for method chaining
+   */
+  pay(text: string): this {
+    this.operations.push({
+      type: "button",
+      data: { text, pay: true },
     });
     return this;
   }
@@ -46,7 +193,7 @@ export class MenuTemplate {
     let currentRow: RowDef = [];
 
     for (const op of this.operations) {
-      if (op.type === "button" && op.data) {
+      if (op.type === "button") {
         currentRow.push(op.data);
       } else if (op.type === "row") {
         if (currentRow.length > 0) {
