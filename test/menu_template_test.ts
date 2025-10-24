@@ -31,11 +31,11 @@ describe("MenuTemplate", () => {
       expect(menu.inline_keyboard[0]).toHaveLength(2);
       expect(
         (menu.inline_keyboard[0][0] as { callback_data?: string })
-          .callback_data
+          .callback_data,
       ).toBe("left");
       expect(
         (menu.inline_keyboard[0][1] as { callback_data?: string })
-          .callback_data
+          .callback_data,
       ).toBe("right");
     });
   });
@@ -58,7 +58,7 @@ describe("MenuTemplate", () => {
       const menu = template.render();
 
       expect((menu.inline_keyboard[0][0] as { url?: string }).url).toBe(
-        "tg://user?id=123"
+        "tg://user?id=123",
       );
     });
 
@@ -69,11 +69,11 @@ describe("MenuTemplate", () => {
 
       expect(menu.inline_keyboard[0]).toHaveLength(2);
       expect((menu.inline_keyboard[0][0] as { url?: string }).url).toBe(
-        "https://example.com"
+        "https://example.com",
       );
       expect(
         (menu.inline_keyboard[0][1] as { callback_data?: string })
-          .callback_data
+          .callback_data,
       ).toBe("data");
     });
   });
@@ -263,11 +263,11 @@ describe("MenuTemplate", () => {
       expect(menu.inline_keyboard).toHaveLength(2);
       expect(
         (menu.inline_keyboard[0][0] as { callback_data?: string })
-          .callback_data
+          .callback_data,
       ).toBe("1");
       expect(
         (menu.inline_keyboard[1][0] as { callback_data?: string })
-          .callback_data
+          .callback_data,
       ).toBe("2");
     });
 
