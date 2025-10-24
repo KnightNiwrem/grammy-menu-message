@@ -9,7 +9,7 @@
 
 export { Menu } from "./menu.ts";
 export { MenuTemplate } from "./template.ts";
-export { MenuRegistry, type StorageAdapter } from "./registry.ts";
+export { MenuRegistry } from "./registry.ts";
 export { vault } from "./plugin.ts";
 export type {
   VaultData,
@@ -17,3 +17,4 @@ export type {
   VaultFlavor,
   VaultOptions,
 } from "./plugin.ts";
+export type { StorageAdapter } from "grammy";

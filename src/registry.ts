@@ -1,14 +1,8 @@
 import { Composer, Context } from "grammy";
-import type { MiddlewareFn } from "grammy";
+import type { MiddlewareFn, StorageAdapter } from "grammy";
 import { nanoid } from "nanoid";
 import type { MenuTemplate } from "./template.ts";
 import type { Menu } from "./menu.ts";
-
-export interface StorageAdapter<V> {
-  read(key: string): Promise<V | undefined>;
-  write(key: string, value: V): Promise<void>;
-  delete(key: string): Promise<void>;
-}
 
 /**
  * MenuRegistry manages registered menu templates indexed by their template IDs.
@@ -94,9 +88,11 @@ export class MenuRegistry {
     this.renderedMenus.set(renderedMenuId, renderedMenu);
 
     if (this.storage) {
-      this.storage.write(renderedMenuId, templateId).catch((err) => {
-        console.error(`Failed to persist rendered menu mapping: ${err}`);
-      });
+      Promise.resolve(this.storage.write(renderedMenuId, templateId)).catch(
+        (err) => {
+          console.error(`Failed to persist rendered menu mapping: ${err}`);
+        },
+      );
     }
 
     return renderedMenu;
