@@ -1,13 +1,18 @@
-import type { InlineKeyboardButton } from "grammy/types";
 import { Menu } from "./menu.ts";
+
+type ButtonDef = { text: string; callback_data: string };
+type RowDef = ButtonDef[];
 
 /**
  * MenuTemplate defines the structure of a menu using a builder pattern.
  * It provides methods to add callback buttons and organize them into rows.
+ * Objects are created fresh on each render() call.
  */
 export class MenuTemplate {
-  private rows: InlineKeyboardButton[][] = [];
-  private currentRow: InlineKeyboardButton[] = [];
+  private operations: Array<{
+    type: "button" | "row";
+    data?: ButtonDef;
+  }> = [];
 
   /**
    * Adds a callback button to the current row.
@@ -16,9 +21,9 @@ export class MenuTemplate {
    * @returns this for method chaining
    */
   rawCb(label: string, callbackData: string): this {
-    this.currentRow.push({
-      text: label,
-      callback_data: callbackData,
+    this.operations.push({
+      type: "button",
+      data: { text: label, callback_data: callbackData },
     });
     return this;
   }
@@ -28,22 +33,33 @@ export class MenuTemplate {
    * @returns this for method chaining
    */
   row(): this {
-    if (this.currentRow.length > 0) {
-      this.rows.push(this.currentRow);
-      this.currentRow = [];
-    }
+    this.operations.push({ type: "row" });
     return this;
   }
 
   /**
-   * Renders the template into a Menu with the configured inline keyboard.
-   * @returns A Menu instance with the configured buttons
+   * Renders the template into a Menu with a fresh inline keyboard instance.
+   * @returns A Menu instance with newly constructed buttons
    */
   render(): Menu {
-    const finalRows = [...this.rows];
-    if (this.currentRow.length > 0) {
-      finalRows.push(this.currentRow);
+    const rows: RowDef[] = [];
+    let currentRow: RowDef = [];
+
+    for (const op of this.operations) {
+      if (op.type === "button" && op.data) {
+        currentRow.push(op.data);
+      } else if (op.type === "row") {
+        if (currentRow.length > 0) {
+          rows.push(currentRow);
+          currentRow = [];
+        }
+      }
     }
-    return new Menu(finalRows);
+
+    if (currentRow.length > 0) {
+      rows.push(currentRow);
+    }
+
+    return new Menu(rows);
   }
 }
