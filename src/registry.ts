@@ -125,7 +125,20 @@ export class MenuRegistry {
     }
 
     try {
-      const mappingsObj = Object.fromEntries(this.renderedToTemplateId);
+      const mappingsObj: Record<
+        string,
+        { templateId: string; payloads: Record<string, string> }
+      > = {};
+      for (const [renderedMenuId, templateId] of this.renderedToTemplateId) {
+        const menu = this.renderedMenus.get(renderedMenuId);
+        const payloads: Record<string, string> = {};
+        if (menu) {
+          for (const [callbackData, payload] of menu.getPayloadEntries()) {
+            payloads[callbackData] = payload;
+          }
+        }
+        mappingsObj[renderedMenuId] = { templateId, payloads };
+      }
       await this.storage.write(
         MenuRegistry.STORAGE_KEY,
         JSON.stringify(mappingsObj),
@@ -146,13 +159,16 @@ export class MenuRegistry {
         MenuRegistry.STORAGE_KEY,
       );
       if (mappingsJson) {
-        const mappings: Record<string, string> = JSON.parse(mappingsJson);
-        for (const [renderedMenuId, templateId] of Object.entries(mappings)) {
-          const template = this.get(templateId);
+        const mappings: Record<
+          string,
+          { templateId: string; payloads: Record<string, string> }
+        > = JSON.parse(mappingsJson);
+        for (const [renderedMenuId, data] of Object.entries(mappings)) {
+          const template = this.get(data.templateId);
           if (template) {
             const renderedMenu = template.render(renderedMenuId);
             this.renderedMenus.set(renderedMenuId, renderedMenu);
-            this.renderedToTemplateId.set(renderedMenuId, templateId);
+            this.renderedToTemplateId.set(renderedMenuId, data.templateId);
           }
         }
       }

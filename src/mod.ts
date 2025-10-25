@@ -8,5 +8,5 @@
  */
 
 export { Menu } from "./menu.ts";
-export { MenuTemplate } from "./template.ts";
+export { type MenuMiddlewareFn, MenuTemplate } from "./template.ts";
 export { MenuRegistry } from "./registry.ts";

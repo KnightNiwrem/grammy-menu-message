@@ -1,5 +1,6 @@
 import type { InlineKeyboardButton } from "grammy/types";
-import type { MiddlewareFn } from "grammy";
+import type { Context, MiddlewareFn } from "grammy";
+import type { MenuMiddlewareFn } from "./template.ts";
 
 /**
  * Menu represents a rendered menu with an inline keyboard and associated callback handlers.
@@ -10,12 +11,14 @@ export class Menu {
    * Creates a new Menu instance.
    * @param renderedMenuId Unique identifier for this rendered menu
    * @param inlineKeyboard The inline keyboard button layout
-   * @param middlewareMap Map of position (row:col) to middleware handlers
+   * @param middlewareMap Map of callback_data to middleware handlers
+   * @param payloadMap Map of callback_data to payload strings
    */
   constructor(
     private readonly renderedMenuId: string,
     private readonly inlineKeyboard: InlineKeyboardButton[][],
-    private readonly middlewareMap: Map<string, MiddlewareFn> = new Map(),
+    private readonly middlewareMap: Map<string, MenuMiddlewareFn> = new Map(),
+    private readonly payloadMap: Map<string, string> = new Map(),
   ) {}
 
   /**
@@ -28,6 +31,7 @@ export class Menu {
 
   /**
    * Gets the middleware handler for a given callback_data, if it exists.
+   * Wraps the MenuMiddlewareFn to inject the payload as the third argument.
    * @param callbackData The callback data from the button press
    * @returns The middleware function if found, undefined otherwise
    */
@@ -35,14 +39,29 @@ export class Menu {
     if (!callbackData.startsWith(this.renderedMenuId + ":")) {
       return undefined;
     }
-    return this.middlewareMap.get(callbackData);
+    const menuMiddleware = this.middlewareMap.get(callbackData);
+    if (!menuMiddleware) {
+      return undefined;
+    }
+    const payload = this.payloadMap.get(callbackData);
+    return (ctx: Context, next: () => Promise<void>) => {
+      return menuMiddleware(ctx, next, payload);
+    };
   }
 
   /**
    * Gets all middleware entries from this menu.
    * @returns An array of [callbackData, middleware] tuples
    */
-  getMiddlewareEntries(): Array<[string, MiddlewareFn]> {
+  getMiddlewareEntries(): Array<[string, MenuMiddlewareFn]> {
     return Array.from(this.middlewareMap.entries());
+  }
+
+  /**
+   * Gets all payload entries from this menu.
+   * @returns An array of [callbackData, payload] tuples
+   */
+  getPayloadEntries(): Array<[string, string]> {
+    return Array.from(this.payloadMap.entries());
   }
 }
