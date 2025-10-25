@@ -223,8 +223,8 @@ export class MenuTemplate {
   render(renderedMenuId: string): Menu {
     const rows: RowDef[] = [];
     let currentRow: RowDef = [];
-    const middlewareMap: Map<string, MenuMiddlewareFn> = new Map();
-    const payloadMap: Map<string, string> = new Map();
+    const middlewares: Record<string, MenuMiddlewareFn> = {};
+    const payloads: Record<string, string> = {};
 
     for (const op of this.operations) {
       if (op.type === "button") {
@@ -237,9 +237,9 @@ export class MenuTemplate {
           text: op.label,
           callback_data: callbackData,
         });
-        middlewareMap.set(callbackData, op.middleware);
+        middlewares[callbackData] = op.middleware;
         if (op.payload !== undefined) {
-          payloadMap.set(callbackData, op.payload);
+          payloads[callbackData] = op.payload;
         }
       } else if (op.type === "row") {
         if (currentRow.length > 0) {
@@ -253,6 +253,6 @@ export class MenuTemplate {
       rows.push(currentRow);
     }
 
-    return new Menu(renderedMenuId, rows, middlewareMap, payloadMap);
+    return new Menu(renderedMenuId, rows, middlewares, payloads);
   }
 }

@@ -131,13 +131,10 @@ export class MenuRegistry {
       > = {};
       for (const [renderedMenuId, templateId] of this.renderedToTemplateId) {
         const menu = this.renderedMenus.get(renderedMenuId);
-        const payloads: Record<string, string> = {};
-        if (menu) {
-          for (const [callbackData, payload] of menu.getPayloadEntries()) {
-            payloads[callbackData] = payload;
-          }
-        }
-        mappingsObj[renderedMenuId] = { templateId, payloads };
+        mappingsObj[renderedMenuId] = {
+          templateId,
+          payloads: menu?.getPayloads() ?? {},
+        };
       }
       await this.storage.write(
         MenuRegistry.STORAGE_KEY,

@@ -11,14 +11,14 @@ export class Menu {
    * Creates a new Menu instance.
    * @param renderedMenuId Unique identifier for this rendered menu
    * @param inlineKeyboard The inline keyboard button layout
-   * @param middlewareMap Map of callback_data to middleware handlers
-   * @param payloadMap Map of callback_data to payload strings
+   * @param middlewares Record of callback_data to middleware handlers
+   * @param payloads Record of callback_data to payload strings
    */
   constructor(
     private readonly renderedMenuId: string,
     private readonly inlineKeyboard: InlineKeyboardButton[][],
-    private readonly middlewareMap: Map<string, MenuMiddlewareFn> = new Map(),
-    private readonly payloadMap: Map<string, string> = new Map(),
+    private readonly middlewares: Record<string, MenuMiddlewareFn> = {},
+    private readonly payloads: Record<string, string> = {},
   ) {}
 
   /**
@@ -39,29 +39,21 @@ export class Menu {
     if (!callbackData.startsWith(this.renderedMenuId + ":")) {
       return undefined;
     }
-    const menuMiddleware = this.middlewareMap.get(callbackData);
+    const menuMiddleware = this.middlewares[callbackData];
     if (!menuMiddleware) {
       return undefined;
     }
-    const payload = this.payloadMap.get(callbackData);
+    const payload = this.payloads[callbackData];
     return (ctx: Context, next: () => Promise<void>) => {
       return menuMiddleware(ctx, next, payload);
     };
   }
 
   /**
-   * Gets all middleware entries from this menu.
-   * @returns An array of [callbackData, middleware] tuples
+   * Gets the payloads record for this menu.
+   * @returns Record of callback_data to payload strings
    */
-  getMiddlewareEntries(): Array<[string, MenuMiddlewareFn]> {
-    return Array.from(this.middlewareMap.entries());
-  }
-
-  /**
-   * Gets all payload entries from this menu.
-   * @returns An array of [callbackData, payload] tuples
-   */
-  getPayloadEntries(): Array<[string, string]> {
-    return Array.from(this.payloadMap.entries());
+  getPayloads(): Record<string, string> {
+    return this.payloads;
   }
 }
