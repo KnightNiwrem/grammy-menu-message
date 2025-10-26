@@ -3,6 +3,12 @@ import type { MiddlewareFn, StorageAdapter } from "grammy";
 import { nanoid } from "nanoid";
 import type { MenuTemplate } from "./template.ts";
 import type { Menu } from "./menu.ts";
+import type {
+  InlineKeyboardButtonShape,
+  InlineKeyboardLayout,
+  MenuRegistryStorageSnapshot,
+  PersistedMenuSnapshot,
+} from "./types.ts";
 
 /**
  * MenuRegistry manages registered menu templates indexed by their template IDs.
@@ -14,11 +20,11 @@ export class MenuRegistry {
   private renderedMenus: Map<string, Menu> = new Map();
   private renderedToTemplateId: Map<string, string> = new Map();
   private composer: Composer<Context>;
-  private storage: StorageAdapter<string> | undefined;
+  private storage: StorageAdapter<MenuRegistryStorageSnapshot> | undefined;
   private storageLoaded = false;
   private static readonly STORAGE_KEY = "__grammy_menu_registry_mappings__";
 
-  constructor(storage?: StorageAdapter<string>) {
+  constructor(storage?: StorageAdapter<MenuRegistryStorageSnapshot>) {
     this.storage = storage;
     this.composer = new Composer<Context>();
     this.composer.on("callback_query").lazy(
@@ -125,11 +131,45 @@ export class MenuRegistry {
     }
 
     try {
-      const mappingsObj = Object.fromEntries(this.renderedToTemplateId);
-      await this.storage.write(
+      const existingSnapshot = await this.storage.read(
         MenuRegistry.STORAGE_KEY,
-        JSON.stringify(mappingsObj),
-      );
+      ) ?? MenuRegistry.createEmptyStorageSnapshot();
+
+      const menus: Record<string, PersistedMenuSnapshot> = {};
+
+      for (
+        const [renderedMenuId, templateId] of this.renderedToTemplateId
+          .entries()
+      ) {
+        const template = this.get(templateId);
+        if (!template) {
+          continue;
+        }
+
+        const menu = this.renderedMenus.get(renderedMenuId) ??
+          template.render(renderedMenuId);
+
+        if (!this.renderedMenus.has(renderedMenuId)) {
+          this.renderedMenus.set(renderedMenuId, menu);
+        }
+
+        const keyboardSnapshot: InlineKeyboardLayout = menu.inline_keyboard.map(
+          (row) =>
+            row.map((button) => ({ ...button }) as InlineKeyboardButtonShape),
+        );
+
+        menus[renderedMenuId] = {
+          templateId,
+          keyboard: keyboardSnapshot,
+        };
+      }
+
+      const snapshot: MenuRegistryStorageSnapshot = {
+        menus,
+        navigationHistory: existingSnapshot.navigationHistory,
+      };
+
+      await this.storage.write(MenuRegistry.STORAGE_KEY, snapshot);
     } catch (err) {
       throw new Error(`Failed to persist menu mappings to storage: ${err}`);
     }
@@ -142,24 +182,38 @@ export class MenuRegistry {
     }
 
     try {
-      const mappingsJson = await this.storage.read(
+      const snapshot = await this.storage.read(
         MenuRegistry.STORAGE_KEY,
       );
-      if (mappingsJson) {
-        const mappings: Record<string, string> = JSON.parse(mappingsJson);
-        for (const [renderedMenuId, templateId] of Object.entries(mappings)) {
-          const template = this.get(templateId);
-          if (template) {
-            const renderedMenu = template.render(renderedMenuId);
-            this.renderedMenus.set(renderedMenuId, renderedMenu);
-            this.renderedToTemplateId.set(renderedMenuId, templateId);
-          }
+
+      if (!snapshot) {
+        this.storageLoaded = true;
+        return;
+      }
+
+      for (
+        const [renderedMenuId, menuSnapshot] of Object.entries(snapshot.menus)
+      ) {
+        const template = this.get(menuSnapshot.templateId);
+        if (!template) {
+          continue;
         }
+
+        const renderedMenu = template.render(renderedMenuId);
+        this.renderedMenus.set(renderedMenuId, renderedMenu);
+        this.renderedToTemplateId.set(
+          renderedMenuId,
+          menuSnapshot.templateId,
+        );
       }
     } catch (err) {
       throw new Error(`Failed to load menu mappings from storage: ${err}`);
     }
 
     this.storageLoaded = true;
+  }
+
+  private static createEmptyStorageSnapshot(): MenuRegistryStorageSnapshot {
+    return { menus: {}, navigationHistory: [] };
   }
 }
