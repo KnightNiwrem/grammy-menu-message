@@ -6,7 +6,6 @@ import type { Menu } from "./menu.ts";
 import type {
   InlineKeyboardButtonShape,
   InlineKeyboardLayout,
-  MenuNavigationRecord,
   MenuRegistryStorageSnapshot,
   PersistedMenuSnapshot,
 } from "./types.ts";
@@ -132,11 +131,8 @@ export class MenuRegistry {
     }
 
     try {
-      const rawSnapshot = await this.storage.read(
+      const existingSnapshot = await this.storage.read(
         MenuRegistry.STORAGE_KEY,
-      ) as unknown;
-      const existingSnapshot = MenuRegistry.normalizeStorageSnapshot(
-        rawSnapshot,
       ) ?? MenuRegistry.createEmptyStorageSnapshot();
 
       const menus: Record<string, PersistedMenuSnapshot> = {};
@@ -186,27 +182,29 @@ export class MenuRegistry {
     }
 
     try {
-      const rawSnapshot = await this.storage.read(
+      const snapshot = await this.storage.read(
         MenuRegistry.STORAGE_KEY,
-      ) as unknown;
-      const snapshot = MenuRegistry.normalizeStorageSnapshot(rawSnapshot);
+      );
 
-      if (snapshot) {
-        for (
-          const [renderedMenuId, menuSnapshot] of Object.entries(snapshot.menus)
-        ) {
-          const template = this.get(menuSnapshot.templateId);
-          if (!template) {
-            continue;
-          }
+      if (!snapshot) {
+        this.storageLoaded = true;
+        return;
+      }
 
-          const renderedMenu = template.render(renderedMenuId);
-          this.renderedMenus.set(renderedMenuId, renderedMenu);
-          this.renderedToTemplateId.set(
-            renderedMenuId,
-            menuSnapshot.templateId,
-          );
+      for (
+        const [renderedMenuId, menuSnapshot] of Object.entries(snapshot.menus)
+      ) {
+        const template = this.get(menuSnapshot.templateId);
+        if (!template) {
+          continue;
         }
+
+        const renderedMenu = template.render(renderedMenuId);
+        this.renderedMenus.set(renderedMenuId, renderedMenu);
+        this.renderedToTemplateId.set(
+          renderedMenuId,
+          menuSnapshot.templateId,
+        );
       }
     } catch (err) {
       throw new Error(`Failed to load menu mappings from storage: ${err}`);
@@ -217,106 +215,5 @@ export class MenuRegistry {
 
   private static createEmptyStorageSnapshot(): MenuRegistryStorageSnapshot {
     return { menus: {}, navigationHistory: [] };
-  }
-
-  private static normalizeStorageSnapshot(
-    payload: unknown,
-  ): MenuRegistryStorageSnapshot | undefined {
-    if (!payload) {
-      return undefined;
-    }
-
-    if (typeof payload === "string") {
-      try {
-        return MenuRegistry.normalizeStorageSnapshot(JSON.parse(payload));
-      } catch {
-        return undefined;
-      }
-    }
-
-    if (
-      typeof payload === "object" &&
-      payload !== null &&
-      "menus" in payload &&
-      "navigationHistory" in payload
-    ) {
-      const menusPayload = (payload as { menus: unknown }).menus;
-      const historyPayload = (payload as { navigationHistory: unknown })
-        .navigationHistory;
-
-      if (
-        menusPayload &&
-        typeof menusPayload === "object" &&
-        !Array.isArray(menusPayload) &&
-        Array.isArray(historyPayload)
-      ) {
-        const menus: Record<string, PersistedMenuSnapshot> = {};
-
-        for (
-          const [renderedMenuId, value] of Object.entries(
-            menusPayload as Record<string, unknown>,
-          )
-        ) {
-          if (
-            value &&
-            typeof value === "object" &&
-            "templateId" in value &&
-            "keyboard" in value
-          ) {
-            const templateId = (value as { templateId: unknown }).templateId;
-            const keyboard = (value as { keyboard: unknown }).keyboard;
-
-            if (typeof templateId === "string" && Array.isArray(keyboard)) {
-              menus[renderedMenuId] = {
-                templateId,
-                keyboard: keyboard as PersistedMenuSnapshot["keyboard"],
-              };
-            }
-          }
-        }
-
-        const navigationHistory: MenuNavigationRecord[] = [];
-
-        for (const entry of historyPayload) {
-          if (
-            entry &&
-            typeof entry === "object" &&
-            "menuId" in entry &&
-            "timestamp" in entry
-          ) {
-            const menuId = (entry as { menuId: unknown }).menuId;
-            const timestamp = (entry as { timestamp: unknown }).timestamp;
-
-            if (typeof menuId === "string" && typeof timestamp === "number") {
-              navigationHistory.push({ menuId, timestamp });
-            }
-          }
-        }
-
-        return { menus, navigationHistory };
-      }
-    }
-
-    if (typeof payload === "object" && payload !== null) {
-      const entries = Object.entries(payload as Record<string, unknown>);
-      if (
-        entries.every(([, value]) => typeof value === "string")
-      ) {
-        const menus: Record<string, PersistedMenuSnapshot> = {};
-        for (
-          const [renderedMenuId, templateId] of entries as Array<
-            [string, string]
-          >
-        ) {
-          menus[renderedMenuId] = {
-            templateId,
-            keyboard: [],
-          };
-        }
-        return { menus, navigationHistory: [] };
-      }
-    }
-
-    return undefined;
   }
 }
