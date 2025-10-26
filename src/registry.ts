@@ -3,6 +3,11 @@ import type { MiddlewareFn, StorageAdapter } from "grammy";
 import { nanoid } from "nanoid";
 import type { MenuTemplate } from "./template.ts";
 import type { Menu } from "./menu.ts";
+import type {
+  MenuNavigationRecord,
+  MenuRegistryStorageSnapshot,
+  PersistedMenuSnapshot,
+} from "./types.ts";
 
 /**
  * MenuRegistry manages registered menu templates indexed by their template IDs.
@@ -14,11 +19,11 @@ export class MenuRegistry {
   private renderedMenus: Map<string, Menu> = new Map();
   private renderedToTemplateId: Map<string, string> = new Map();
   private composer: Composer<Context>;
-  private storage: StorageAdapter<string> | undefined;
+  private storage: StorageAdapter<MenuRegistryStorageSnapshot> | undefined;
   private storageLoaded = false;
   private static readonly STORAGE_KEY = "__grammy_menu_registry_mappings__";
 
-  constructor(storage?: StorageAdapter<string>) {
+  constructor(storage?: StorageAdapter<MenuRegistryStorageSnapshot>) {
     this.storage = storage;
     this.composer = new Composer<Context>();
     this.composer.on("callback_query").lazy(
@@ -125,11 +130,43 @@ export class MenuRegistry {
     }
 
     try {
-      const mappingsObj = Object.fromEntries(this.renderedToTemplateId);
-      await this.storage.write(
+      const rawSnapshot = await this.storage.read(
         MenuRegistry.STORAGE_KEY,
-        JSON.stringify(mappingsObj),
-      );
+      ) as unknown;
+      const existingSnapshot = MenuRegistry.normalizeStorageSnapshot(
+        rawSnapshot,
+      ) ?? MenuRegistry.createEmptyStorageSnapshot();
+
+      const menus: Record<string, PersistedMenuSnapshot> = {};
+
+      for (
+        const [renderedMenuId, templateId] of this.renderedToTemplateId
+          .entries()
+      ) {
+        const template = this.get(templateId);
+        if (!template) {
+          continue;
+        }
+
+        const menu = this.renderedMenus.get(renderedMenuId) ??
+          template.render(renderedMenuId);
+
+        if (!this.renderedMenus.has(renderedMenuId)) {
+          this.renderedMenus.set(renderedMenuId, menu);
+        }
+
+        menus[renderedMenuId] = {
+          templateId,
+          keyboard: menu.inline_keyboard,
+        };
+      }
+
+      const snapshot: MenuRegistryStorageSnapshot = {
+        menus,
+        navigationHistory: existingSnapshot.navigationHistory,
+      };
+
+      await this.storage.write(MenuRegistry.STORAGE_KEY, snapshot);
     } catch (err) {
       throw new Error(`Failed to persist menu mappings to storage: ${err}`);
     }
@@ -142,18 +179,26 @@ export class MenuRegistry {
     }
 
     try {
-      const mappingsJson = await this.storage.read(
+      const rawSnapshot = await this.storage.read(
         MenuRegistry.STORAGE_KEY,
-      );
-      if (mappingsJson) {
-        const mappings: Record<string, string> = JSON.parse(mappingsJson);
-        for (const [renderedMenuId, templateId] of Object.entries(mappings)) {
-          const template = this.get(templateId);
-          if (template) {
-            const renderedMenu = template.render(renderedMenuId);
-            this.renderedMenus.set(renderedMenuId, renderedMenu);
-            this.renderedToTemplateId.set(renderedMenuId, templateId);
+      ) as unknown;
+      const snapshot = MenuRegistry.normalizeStorageSnapshot(rawSnapshot);
+
+      if (snapshot) {
+        for (
+          const [renderedMenuId, menuSnapshot] of Object.entries(snapshot.menus)
+        ) {
+          const template = this.get(menuSnapshot.templateId);
+          if (!template) {
+            continue;
           }
+
+          const renderedMenu = template.render(renderedMenuId);
+          this.renderedMenus.set(renderedMenuId, renderedMenu);
+          this.renderedToTemplateId.set(
+            renderedMenuId,
+            menuSnapshot.templateId,
+          );
         }
       }
     } catch (err) {
@@ -161,5 +206,110 @@ export class MenuRegistry {
     }
 
     this.storageLoaded = true;
+  }
+
+  private static createEmptyStorageSnapshot(): MenuRegistryStorageSnapshot {
+    return { menus: {}, navigationHistory: [] };
+  }
+
+  private static normalizeStorageSnapshot(
+    payload: unknown,
+  ): MenuRegistryStorageSnapshot | undefined {
+    if (!payload) {
+      return undefined;
+    }
+
+    if (typeof payload === "string") {
+      try {
+        return MenuRegistry.normalizeStorageSnapshot(JSON.parse(payload));
+      } catch {
+        return undefined;
+      }
+    }
+
+    if (
+      typeof payload === "object" &&
+      payload !== null &&
+      "menus" in payload &&
+      "navigationHistory" in payload
+    ) {
+      const menusPayload = (payload as { menus: unknown }).menus;
+      const historyPayload = (payload as { navigationHistory: unknown })
+        .navigationHistory;
+
+      if (
+        menusPayload &&
+        typeof menusPayload === "object" &&
+        !Array.isArray(menusPayload) &&
+        Array.isArray(historyPayload)
+      ) {
+        const menus: Record<string, PersistedMenuSnapshot> = {};
+
+        for (
+          const [renderedMenuId, value] of Object.entries(
+            menusPayload as Record<string, unknown>,
+          )
+        ) {
+          if (
+            value &&
+            typeof value === "object" &&
+            "templateId" in value &&
+            "keyboard" in value
+          ) {
+            const templateId = (value as { templateId: unknown }).templateId;
+            const keyboard = (value as { keyboard: unknown }).keyboard;
+
+            if (typeof templateId === "string" && Array.isArray(keyboard)) {
+              menus[renderedMenuId] = {
+                templateId,
+                keyboard: keyboard as PersistedMenuSnapshot["keyboard"],
+              };
+            }
+          }
+        }
+
+        const navigationHistory: MenuNavigationRecord[] = [];
+
+        for (const entry of historyPayload) {
+          if (
+            entry &&
+            typeof entry === "object" &&
+            "menuId" in entry &&
+            "timestamp" in entry
+          ) {
+            const menuId = (entry as { menuId: unknown }).menuId;
+            const timestamp = (entry as { timestamp: unknown }).timestamp;
+
+            if (typeof menuId === "string" && typeof timestamp === "number") {
+              navigationHistory.push({ menuId, timestamp });
+            }
+          }
+        }
+
+        return { menus, navigationHistory };
+      }
+    }
+
+    if (typeof payload === "object" && payload !== null) {
+      const entries = Object.entries(payload as Record<string, unknown>);
+      if (
+        entries.every(([, value]) => typeof value === "string")
+      ) {
+        const menus: Record<string, PersistedMenuSnapshot> = {};
+        for (
+          const [renderedMenuId, templateId] of entries as Array<
+            [string, string]
+          >
+        ) {
+          menus[renderedMenuId] = {
+            templateId,
+            keyboard: [],
+          };
+        }
+        return { menus, navigationHistory: [] };
+      }
+    }
+
+    return undefined;
   }
 }

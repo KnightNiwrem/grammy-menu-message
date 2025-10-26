@@ -1,21 +1,18 @@
-type MenuButton = Record<string, unknown>;
+import type { InlineKeyboardButton } from "grammy/types";
 
-type MenuKeyboard = MenuButton[][];
+export type InlineKeyboardLayout = InlineKeyboardButton[][];
 
-type RenderedMenu = {
-  templateMenuId: string;
-  keyboard: MenuKeyboard;
-};
+export interface PersistedMenuSnapshot {
+  templateId: string;
+  keyboard: InlineKeyboardLayout;
+}
 
-type NavigationHistoryEntry = {
-  menu: string;
+export interface MenuNavigationRecord {
+  menuId: string;
   timestamp: number;
-};
+}
 
-/**
- *  * The complete shape of the storage object.
- */
-type StorageShape = Record<string, {
-  menus: Record<string, RenderedMenu>;
-  navigation: NavigationHistoryEntry[];
-}>;
+export interface MenuRegistryStorageSnapshot {
+  menus: Record<string, PersistedMenuSnapshot>;
+  navigationHistory: MenuNavigationRecord[];
+}
