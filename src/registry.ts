@@ -4,6 +4,8 @@ import { nanoid } from "nanoid";
 import type { MenuTemplate } from "./template.ts";
 import type { Menu } from "./menu.ts";
 import type {
+  InlineKeyboardButtonShape,
+  InlineKeyboardLayout,
   MenuNavigationRecord,
   MenuRegistryStorageSnapshot,
   PersistedMenuSnapshot,
@@ -155,9 +157,14 @@ export class MenuRegistry {
           this.renderedMenus.set(renderedMenuId, menu);
         }
 
+        const keyboardSnapshot: InlineKeyboardLayout = menu.inline_keyboard.map(
+          (row) =>
+            row.map((button) => ({ ...button }) as InlineKeyboardButtonShape),
+        );
+
         menus[renderedMenuId] = {
           templateId,
-          keyboard: menu.inline_keyboard,
+          keyboard: keyboardSnapshot,
         };
       }
 

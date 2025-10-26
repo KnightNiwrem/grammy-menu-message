@@ -11,6 +11,7 @@ export { Menu } from "./menu.ts";
 export { MenuTemplate } from "./template.ts";
 export { MenuRegistry } from "./registry.ts";
 export type {
+  InlineKeyboardButtonShape,
   InlineKeyboardLayout,
   MenuNavigationRecord,
   MenuRegistryStorageSnapshot,

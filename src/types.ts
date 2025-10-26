@@ -1,6 +1,6 @@
-import type { InlineKeyboardButton } from "grammy/types";
+export type InlineKeyboardButtonShape = Record<string, unknown>;
 
-export type InlineKeyboardLayout = InlineKeyboardButton[][];
+export type InlineKeyboardLayout = InlineKeyboardButtonShape[][];
 
 export interface PersistedMenuSnapshot {
   templateId: string;
