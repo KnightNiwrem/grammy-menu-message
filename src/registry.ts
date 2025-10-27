@@ -19,6 +19,13 @@ export class MenuRegistry<C extends Context> {
   private storageKeyPrefix: string;
   private loadedStorageKeyIds: Set<string> = new Set();
 
+  /**
+   * Creates a new MenuRegistry instance.
+   * @param options Configuration options for the registry
+   * @param options.storage StorageAdapter for persisting menu navigation history
+   * @param options.keyGenerator Optional function to generate storage keys from context (defaults to chatId:msgId)
+   * @param options.keyPrefix Optional prefix for storage keys (defaults to "menu-message:")
+   */
   constructor(options?: {
     keyPrefix?: string;
     keyGenerator?: (ctx: C) => string;

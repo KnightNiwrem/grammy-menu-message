@@ -45,9 +45,8 @@ export class MenuTemplate<C extends Context> {
    * Adds a callback button controlled by middleware to the current row.
    * The callback_data is generated automatically during render using the button's position.
    * @param label The text displayed on the button
-   * @param options Optional configuration object
-   * @param options.payload Reserved for future use (currently unused)
-   * @param options.handler The middleware function to handle the callback; defaults to pass-through
+   * @param handler The middleware function to handle the callback
+   * @param payload Optional data reserved for future use (currently unused)
    * @returns this for method chaining
    */
   cb(
