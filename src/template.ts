@@ -8,11 +8,8 @@ import type {
 import type { MiddlewareFn } from "grammy";
 import { Menu, type MenuButton } from "./menu.ts";
 
-type ButtonDef = InlineKeyboardButton;
-type RowDef = ButtonDef[];
-
 type Operation =
-  | { type: "button"; data: ButtonDef }
+  | { type: "button"; data: InlineKeyboardButton }
   | { type: "cbButton"; label: string; middleware: MiddlewareFn }
   | { type: "row" };
 
@@ -208,44 +205,44 @@ export class MenuTemplate {
    * @returns A Menu instance with newly constructed buttons
    */
   render(renderedMenuId: string): Menu {
-    const rows: InlineKeyboardButton[][] = [];
-    const menuRows: MenuButton[][] = [];
-    let currentRow: InlineKeyboardButton[] = [];
-    let currentMenuRow: MenuButton[] = [];
+    const inlineKeyboard: InlineKeyboardButton[][] = [];
+    const menuKeyboard: MenuButton[][] = [];
+    let inlineRow: InlineKeyboardButton[] = [];
+    let menuRow: MenuButton[] = [];
 
     for (const op of this.operations) {
       if (op.type === "button") {
-        currentRow.push(op.data);
-        currentMenuRow.push(op.data as MenuButton);
+        inlineRow.push(op.data);
+        menuRow.push(op.data as MenuButton);
       } else if (op.type === "cbButton") {
-        const rowNum = rows.length;
-        const colNum = currentRow.length;
-        const callbackData = `${renderedMenuId}:${rowNum}:${colNum}`;
-        const button: InlineKeyboardButton = {
+        const row = inlineKeyboard.length;
+        const col = inlineRow.length;
+        const callbackData = `${renderedMenuId}:${row}:${col}`;
+        const inlineButton: InlineKeyboardButton = {
           text: op.label,
           callback_data: callbackData,
         };
-        currentRow.push(button);
+        inlineRow.push(inlineButton);
         const menuButton: MenuButton = {
-          ...button,
+          ...inlineButton,
           middleware: op.middleware,
         };
-        currentMenuRow.push(menuButton);
+        menuRow.push(menuButton);
       } else if (op.type === "row") {
-        if (currentRow.length > 0) {
-          rows.push(currentRow);
-          menuRows.push(currentMenuRow);
-          currentRow = [];
-          currentMenuRow = [];
+        if (inlineRow.length > 0) {
+          inlineKeyboard.push(inlineRow);
+          menuKeyboard.push(menuRow);
+          inlineRow = [];
+          menuRow = [];
         }
       }
     }
 
-    if (currentRow.length > 0) {
-      rows.push(currentRow);
-      menuRows.push(currentMenuRow);
+    if (inlineRow.length > 0) {
+      inlineKeyboard.push(inlineRow);
+      menuKeyboard.push(menuRow);
     }
 
-    return new Menu(renderedMenuId, menuRows, rows);
+    return new Menu(renderedMenuId, menuKeyboard, inlineKeyboard);
   }
 }
