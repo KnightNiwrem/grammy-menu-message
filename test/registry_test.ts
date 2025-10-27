@@ -45,13 +45,6 @@ describe("MenuRegistry", () => {
       expect(registry).toBeDefined();
     });
 
-    it("should create a registry with custom key generator", () => {
-      const storage = new MockStorage();
-      const keyGenerator = (ctx: Context) => `custom-${ctx.chatId}`;
-      const registry = new MenuRegistry<Context>({ storage, keyGenerator });
-      expect(registry).toBeDefined();
-    });
-
     it("should create a registry with custom key prefix", () => {
       const storage = new MockStorage();
       const registry = new MenuRegistry<Context>({
@@ -258,11 +251,9 @@ describe("MenuRegistry", () => {
 
     it("should use custom key generator when provided", () => {
       const storage = new MockStorage();
-      const keyGenerator = (ctx: Context) => `user-${ctx.from?.id}`;
 
       const registry = new MenuRegistry<Context>({
         storage,
-        keyGenerator,
       });
 
       expect(registry).toBeDefined();
@@ -279,7 +270,7 @@ describe("MenuRegistry", () => {
       expect(registry).toBeDefined();
     });
 
-    it("should use default key generator if not provided", () => {
+    it("should use default key prefix if not provided", () => {
       const storage = new MockStorage();
 
       const registry = new MenuRegistry<Context>({

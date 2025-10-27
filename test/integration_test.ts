@@ -205,13 +205,10 @@ describe("Integration Tests", () => {
 
     it("should support custom storage key configuration", () => {
       const storage = new IntegrationMockStorage();
-      const keyGenerator = (ctx: Context) =>
-        `user-${ctx.from?.id ?? "unknown"}`;
       const keyPrefix = "mybot:";
 
       const registry = new MenuRegistry<Context>({
         storage,
-        keyGenerator,
         keyPrefix,
       });
 

@@ -15,7 +15,6 @@ export class MenuRegistry<C extends Context> {
   private renderedMenus: Map<string, Menu<C>> = new Map();
   private composer: Composer<C>;
   private storage: StorageAdapter<MenuMessageData> | undefined;
-  private storageKeyGenerator: (ctx: C) => string;
   private storageKeyPrefix: string;
   private loadedStorageKeyIds: Set<string> = new Set();
 
@@ -23,22 +22,17 @@ export class MenuRegistry<C extends Context> {
    * Creates a new MenuRegistry instance.
    * @param options Configuration options for the registry
    * @param options.storage StorageAdapter for persisting menu navigation history
-   * @param options.keyGenerator Optional function to generate storage keys from context (defaults to chatId:msgId)
    * @param options.keyPrefix Optional prefix for storage keys (defaults to "menu-message:")
    */
   constructor(options?: {
     keyPrefix?: string;
-    keyGenerator?: (ctx: C) => string;
     storage: StorageAdapter<MenuMessageData>;
   }) {
     this.storage = options?.storage;
-    this.storageKeyGenerator = options?.keyGenerator ??
-      ((ctx) => `${ctx.chatId ?? "global"}${ctx.msgId ?? "global"}`);
     this.storageKeyPrefix = options?.keyPrefix ?? "menu-message:";
 
     this.composer = new Composer<C>();
     this.composer.use(async (ctx, next) => {
-      const keyId = `${this.storageKeyPrefix}${this.storageKeyGenerator(ctx)}`;
       ctx.api.config.use(async (prev, method, payload, signal) => {
         if (
           !payload || !("reply_markup" in payload) || !payload.reply_markup
@@ -56,7 +50,16 @@ export class MenuRegistry<C extends Context> {
           ...payload,
           reply_markup: { inline_keyboard: inlineKeyboard },
         };
-        if (this.storage) {
+
+        const result = await prev(method, payload, signal);
+
+        if (
+          this.storage && result && typeof result === "object" &&
+          "message_id" in result
+        ) {
+          const msgId = result.message_id;
+          const chatId = ctx.chatId ?? "global";
+          const keyId = `${this.storageKeyPrefix}regular:${chatId}:${msgId}`;
           const menuMessageData = await this.storage.read(keyId) ??
             MenuRegistry.createEmptyMenuMessageData();
           const menuNavigationHistoryRecord: MenuNavigationHistoryRecord = {
@@ -67,16 +70,16 @@ export class MenuRegistry<C extends Context> {
           menuMessageData.navigationHistory.push(menuNavigationHistoryRecord);
           await this.storage.write(keyId, menuMessageData);
         }
-        return prev(method, payload, signal);
+        return result;
       });
       await next();
     });
     this.composer.on("callback_query:data").lazy(
       async (ctx): Promise<MiddlewareFn<C>> => {
         const callbackData = ctx.callbackQuery.data;
-        const keyId = `${this.storageKeyPrefix}${
-          this.storageKeyGenerator(ctx)
-        }`;
+        const chatId = ctx.chatId ?? "global";
+        const msgId = ctx.msgId ?? "global";
+        const keyId = `${this.storageKeyPrefix}regular:${chatId}:${msgId}`;
         if (!this.loadedStorageKeyIds.has(keyId)) {
           await this.loadMenuMessageData(keyId);
         }
