@@ -208,8 +208,8 @@ export class MenuTemplate {
    * @returns A Menu instance with newly constructed buttons
    */
   render(renderedMenuId: string): Menu {
-    const rows: Array<InlineKeyboardButton[]> = [];
-    const menuRows: Array<MenuButton[]> = [];
+    const rows: InlineKeyboardButton[][] = [];
+    const menuRows: MenuButton[][] = [];
     let currentRow: InlineKeyboardButton[] = [];
     let currentMenuRow: MenuButton[] = [];
 
