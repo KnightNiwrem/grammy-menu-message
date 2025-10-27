@@ -34,13 +34,12 @@ export class MenuRegistry<C extends Context> {
       const keyId = `${this.storageKeyPrefix}${this.storageKeyGenerator(ctx)}`;
       ctx.api.config.use(async (prev, method, payload, signal) => {
         if (
-          !payload || !("reply_markup" in payload) || !payload.reply_markup ||
-          !("inline_keyboard" in payload.reply_markup)
+          !payload || !("reply_markup" in payload) || !payload.reply_markup
         ) {
           return prev(method, payload, signal);
         }
 
-        const menu = payload.reply_markup.inline_keyboard;
+        const menu = payload.reply_markup;
         if (!(menu instanceof Menu)) {
           return prev(method, payload, signal);
         }
