@@ -2,47 +2,77 @@ import { Composer, Context } from "grammy";
 import type { MiddlewareFn, StorageAdapter } from "grammy";
 import { nanoid } from "nanoid";
 import type { MenuTemplate } from "./template.ts";
-import type { Menu } from "./menu.ts";
-import type {
-  InlineKeyboardButtonShape,
-  InlineKeyboardLayout,
-  MenuRegistryStorageSnapshot,
-  PersistedMenuSnapshot,
-} from "./types.ts";
+import { Menu } from "./menu.ts";
+import type { MenuMessageData, MenuNavigationHistoryRecord } from "./types.ts";
 
 /**
  * MenuRegistry manages registered menu templates indexed by their template IDs.
  * Allows users to register and retrieve MenuTemplate instances.
  * When provided with a StorageAdapter, persists rendered menu ID to template ID mappings.
  */
-export class MenuRegistry {
-  private templates: Map<string, MenuTemplate> = new Map();
-  private renderedMenus: Map<string, Menu> = new Map();
-  private renderedToTemplateId: Map<string, string> = new Map();
-  private composer: Composer<Context>;
-  private storage: StorageAdapter<MenuRegistryStorageSnapshot> | undefined;
-  private storageLoaded = false;
-  private static readonly STORAGE_KEY = "__grammy_menu_registry_mappings__";
+export class MenuRegistry<C extends Context> {
+  private templates: Map<string, MenuTemplate<C>> = new Map();
+  private renderedMenus: Map<string, Menu<C>> = new Map();
+  private composer: Composer<C>;
+  private storage: StorageAdapter<MenuMessageData> | undefined;
+  private storageKeyGenerator: (ctx: C) => string;
+  private storageKeyPrefix: string;
+  private loadedStorageKeyIds: Set<string> = new Set();
 
-  constructor(storage?: StorageAdapter<MenuRegistryStorageSnapshot>) {
-    this.storage = storage;
-    this.composer = new Composer<Context>();
-    this.composer.on("callback_query").lazy(
-      async (ctx): Promise<MiddlewareFn<Context>> => {
-        const callbackData = ctx.callbackQuery?.data;
-        if (!callbackData) {
-          return (_ctx, next) => next();
+  constructor(options?: {
+    keyPrefix?: string;
+    keyGenerator?: (ctx: C) => string;
+    storage: StorageAdapter<MenuMessageData>;
+  }) {
+    this.storage = options?.storage;
+    this.storageKeyGenerator = options?.keyGenerator ??
+      ((ctx) => `${ctx.chatId ?? "global"}${ctx.msgId ?? "global"}`);
+    this.storageKeyPrefix = options?.keyPrefix ?? "menu-message:";
+
+    this.composer = new Composer<C>();
+    this.composer.use(async (ctx, next) => {
+      const keyId = `${this.storageKeyPrefix}${this.storageKeyGenerator(ctx)}`;
+      ctx.api.config.use(async (prev, method, payload, signal) => {
+        if (!payload || !("reply_markup" in payload) || !payload.reply_markup || !("inline_keyboard" in payload.reply_markup)) {
+          return prev(method, payload, signal);
         }
 
-        if (!this.storageLoaded) {
-          await this.loadMenuMappingsFromStorage();
+        const menu = payload.reply_markup.inline_keyboard;
+        if (!(menu instanceof Menu)) {
+          return prev(method, payload, signal);
+        }
+
+        const inlineKeyboard = menu.inline_keyboard;
+        payload = { ...payload, reply_markup: { inline_keyboard: inlineKeyboard } };
+        if (this.storage) {
+          const menuMessageData = await this.storage.read(keyId) ??
+            MenuRegistry.createEmptyMenuMessageData();
+          const menuNavigationHistoryRecord: MenuNavigationHistoryRecord = {
+            renderedMenuId: menu.renderedMenuId,
+            templateMenuId: menu.templateMenuId,
+            timestamp: Date.now(),
+          }
+          menuMessageData.navigationHistory.push(menuNavigationHistoryRecord);
+        }
+        return prev(method, payload, signal);
+      });
+      await next();
+    });
+    this.composer.on("callback_query:data").lazy(
+      async (ctx): Promise<MiddlewareFn<C>> => {
+        const callbackData = ctx.callbackQuery.data;
+        const keyId = `${this.storageKeyPrefix}${
+          this.storageKeyGenerator(ctx)
+        }`;
+        if (!this.loadedStorageKeyIds.has(keyId)) {
+          await this.loadMenuMessageData(keyId);
         }
 
         for (const menu of this.renderedMenus.values()) {
           for (const row of menu.menuKeyboard) {
             for (const button of row) {
-              if (button.callback_data === callbackData && button.middleware) {
-                return button.middleware;
+              if (button.callback_data === callbackData && button.handler) {
+                return button.handler;
               }
             }
           }
@@ -57,7 +87,7 @@ export class MenuRegistry {
    * @param templateId The unique identifier for the menu template
    * @param template The MenuTemplate instance to register
    */
-  register(templateId: string, template: MenuTemplate): void {
+  register(templateId: string, template: MenuTemplate<C>): void {
     this.templates.set(templateId, template);
   }
 
@@ -66,7 +96,7 @@ export class MenuRegistry {
    * @param templateId The unique identifier of the menu template
    * @returns The MenuTemplate instance, or undefined if not found
    */
-  get(templateId: string): MenuTemplate | undefined {
+  get(templateId: string): MenuTemplate<C> | undefined {
     return this.templates.get(templateId);
   }
 
@@ -80,43 +110,20 @@ export class MenuRegistry {
   }
 
   /**
-   * Unregisters a MenuTemplate by its ID.
-   * @param templateId The unique identifier of the menu template
-   * @returns true if the template was removed, false if it didn't exist
-   */
-  unregister(templateId: string): boolean {
-    return this.templates.delete(templateId);
-  }
-
-  /**
    * Renders a menu from a registered template and appends it to the internal registry.
-   * If storage adapter is provided, persists the rendered menu ID to template ID mapping.
    * @param templateId The unique identifier of the menu template to render
-   * @returns Promise resolving to the rendered Menu instance, or undefined if template not found
-   * @throws If storage write operation fails
+   * @returns The rendered Menu instance
+   * @throws If the template is not found in the registry
    */
-  async menu(templateId: string): Promise<Menu | undefined> {
+  menu(templateId: string): Menu<C> {
     const template = this.get(templateId);
     if (!template) {
-      return undefined;
+      throw new Error(`Menu template '${templateId}' not found in registry`);
     }
 
     const renderedMenuId = nanoid();
     const renderedMenu = template.render(renderedMenuId);
     this.renderedMenus.set(renderedMenuId, renderedMenu);
-    this.renderedToTemplateId.set(renderedMenuId, templateId);
-
-    if (this.storage) {
-      try {
-        await this.persistMappingsToStorage();
-      } catch (err) {
-        // Rollback in-memory state on storage failure to maintain consistency
-        this.renderedMenus.delete(renderedMenuId);
-        this.renderedToTemplateId.delete(renderedMenuId);
-        throw err;
-      }
-    }
-
     return renderedMenu;
   }
 
@@ -124,99 +131,38 @@ export class MenuRegistry {
    * Returns the middleware of the owned Composer.
    * @returns The middleware function for handling callback queries
    */
-  middleware(): MiddlewareFn<Context> {
+  middleware(): MiddlewareFn<C> {
     return this.composer.middleware();
   }
 
-  private async persistMappingsToStorage(): Promise<void> {
-    if (!this.storage) {
+  private async loadMenuMessageData(keyId: string): Promise<void> {
+    if (!this.storage || !this.loadedStorageKeyIds.has(keyId)) {
+      this.loadedStorageKeyIds.add(keyId);
       return;
     }
 
-    try {
-      const existingSnapshot = await this.storage.read(
-        MenuRegistry.STORAGE_KEY,
-      ) ?? MenuRegistry.createEmptyStorageSnapshot();
-
-      const menus: Record<string, PersistedMenuSnapshot> = {};
-
-      for (
-        const [renderedMenuId, templateId] of this.renderedToTemplateId
-          .entries()
-      ) {
-        const template = this.get(templateId);
-        if (!template) {
-          continue;
-        }
-
-        const menu = this.renderedMenus.get(renderedMenuId) ??
-          template.render(renderedMenuId);
-
-        if (!this.renderedMenus.has(renderedMenuId)) {
-          this.renderedMenus.set(renderedMenuId, menu);
-        }
-
-        const keyboardSnapshot: InlineKeyboardLayout = menu.inline_keyboard.map(
-          (row) =>
-            row.map((button) => ({ ...button }) as InlineKeyboardButtonShape),
-        );
-
-        menus[renderedMenuId] = {
-          templateId,
-          keyboard: keyboardSnapshot,
-        };
-      }
-
-      const snapshot: MenuRegistryStorageSnapshot = {
-        menus,
-        navigationHistory: existingSnapshot.navigationHistory,
-      };
-
-      await this.storage.write(MenuRegistry.STORAGE_KEY, snapshot);
-    } catch (err) {
-      throw new Error(`Failed to persist menu mappings to storage: ${err}`);
-    }
-  }
-
-  private async loadMenuMappingsFromStorage(): Promise<void> {
-    if (!this.storage) {
-      this.storageLoaded = true;
+    const menuMessageData = await this.storage.read(keyId);
+    if (!menuMessageData) {
+      this.loadedStorageKeyIds.add(keyId);
       return;
     }
 
-    try {
-      const snapshot = await this.storage.read(
-        MenuRegistry.STORAGE_KEY,
-      );
+    for (const navigationHistoryRecord of menuMessageData.navigationHistory) {
+      const renderedMenuId = navigationHistoryRecord.renderedMenuId;
+      const templateMenuId = navigationHistoryRecord.templateMenuId;
 
-      if (!snapshot) {
-        this.storageLoaded = true;
-        return;
+      const template = this.get(templateMenuId);
+      if (!template) {
+        continue;
       }
 
-      for (
-        const [renderedMenuId, menuSnapshot] of Object.entries(snapshot.menus)
-      ) {
-        const template = this.get(menuSnapshot.templateId);
-        if (!template) {
-          continue;
-        }
-
-        const renderedMenu = template.render(renderedMenuId);
-        this.renderedMenus.set(renderedMenuId, renderedMenu);
-        this.renderedToTemplateId.set(
-          renderedMenuId,
-          menuSnapshot.templateId,
-        );
-      }
-    } catch (err) {
-      throw new Error(`Failed to load menu mappings from storage: ${err}`);
+      const renderedMenu = template.render(renderedMenuId);
+      this.renderedMenus.set(renderedMenuId, renderedMenu);
     }
-
-    this.storageLoaded = true;
+    this.loadedStorageKeyIds.add(keyId);
   }
 
-  private static createEmptyStorageSnapshot(): MenuRegistryStorageSnapshot {
-    return { menus: {}, navigationHistory: [] };
+  private static createEmptyMenuMessageData(): MenuMessageData {
+    return { navigationHistory: [] };
   }
 }

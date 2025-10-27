@@ -1,18 +1,26 @@
-export type InlineKeyboardButtonShape = Record<string, unknown>;
+import type { Context, NextFunction } from "grammy";
+import type { InlineKeyboardButton } from "grammy/types";
 
-export type InlineKeyboardLayout = InlineKeyboardButtonShape[][];
+// Represents a custom menu button handler function
+export type MenuButtonHandler<C extends Context> = (
+  ctx: C,
+  next: NextFunction,
+  payload?: string,
+) => Promise<void> | void;
 
-export interface PersistedMenuSnapshot {
-  templateId: string;
-  keyboard: InlineKeyboardLayout;
-}
+// Represents a custom menu callback button
+export type MenuButton<C extends Context> =
+  & InlineKeyboardButton.CallbackButton
+  & { handler?: MenuButtonHandler<C> };
 
-export interface MenuNavigationRecord {
-  menuId: string;
+// Represents a single record in the navigation history of menu messages
+export interface MenuNavigationHistoryRecord {
+  renderedMenuId: string;
+  templateMenuId: string;
   timestamp: number;
 }
 
-export interface MenuRegistryStorageSnapshot {
-  menus: Record<string, PersistedMenuSnapshot>;
-  navigationHistory: MenuNavigationRecord[];
+// Represents the per-keyId (typically chatId:messageId) data stored for menu messages
+export interface MenuMessageData {
+  navigationHistory: MenuNavigationHistoryRecord[];
 }

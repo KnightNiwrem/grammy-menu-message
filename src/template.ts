@@ -1,3 +1,4 @@
+import type { Context } from "grammy";
 import type {
   CopyTextButton,
   InlineKeyboardButton,
@@ -5,12 +6,12 @@ import type {
   SwitchInlineQueryChosenChat,
   WebAppInfo,
 } from "grammy/types";
-import type { MiddlewareFn } from "grammy";
-import { Menu, type MenuButton } from "./menu.ts";
+import { Menu } from "./menu.ts";
+import type { MenuButton, MenuButtonHandler } from "./types.ts";
 
-type Operation =
-  | { type: "button"; data: InlineKeyboardButton }
-  | { type: "cbButton"; label: string; middleware: MiddlewareFn }
+type Operation<C extends Context> =
+  | { type: "nativeButton"; data: InlineKeyboardButton }
+  | { type: "menuButton"; label: string; handler: MenuButtonHandler<C> }
   | { type: "row" };
 
 /**
@@ -18,8 +19,8 @@ type Operation =
  * It provides methods to add buttons and organize them into rows.
  * Objects are created fresh on each render() call.
  */
-export class MenuTemplate {
-  private operations: Operation[] = [];
+export class MenuTemplate<C extends Context> {
+  private operations: Operation<C>[] = [];
 
   /**
    * Adds a callback button to the current row.
@@ -29,7 +30,7 @@ export class MenuTemplate {
    */
   rawCb(label: string, callbackData: string): this {
     this.operations.push({
-      type: "button",
+      type: "nativeButton",
       data: { text: label, callback_data: callbackData },
     });
     return this;
@@ -42,11 +43,14 @@ export class MenuTemplate {
    * @param middleware The middleware function to handle the callback
    * @returns this for method chaining
    */
-  cb(label: string, middleware: MiddlewareFn): this {
+  cb(
+    label: string,
+    options?: { payload?: string; handler?: MenuButtonHandler<C> },
+  ): this {
     this.operations.push({
-      type: "cbButton",
+      type: "menuButton",
       label,
-      middleware,
+      handler: options?.handler ?? ((_ctx, next) => next()),
     });
     return this;
   }
@@ -59,7 +63,7 @@ export class MenuTemplate {
    */
   url(text: string, url: string): this {
     this.operations.push({
-      type: "button",
+      type: "nativeButton",
       data: { text, url },
     });
     return this;
@@ -73,7 +77,7 @@ export class MenuTemplate {
    */
   webApp(text: string, url: string | WebAppInfo): this {
     this.operations.push({
-      type: "button",
+      type: "nativeButton",
       data: {
         text,
         web_app: typeof url === "string" ? { url } : url,
@@ -90,7 +94,7 @@ export class MenuTemplate {
    */
   login(text: string, loginUrl: string | LoginUrl): this {
     this.operations.push({
-      type: "button",
+      type: "nativeButton",
       data: {
         text,
         login_url: typeof loginUrl === "string" ? { url: loginUrl } : loginUrl,
@@ -107,7 +111,7 @@ export class MenuTemplate {
    */
   switchInline(text: string, query = ""): this {
     this.operations.push({
-      type: "button",
+      type: "nativeButton",
       data: { text, switch_inline_query: query },
     });
     return this;
@@ -121,7 +125,7 @@ export class MenuTemplate {
    */
   switchInlineCurrent(text: string, query = ""): this {
     this.operations.push({
-      type: "button",
+      type: "nativeButton",
       data: { text, switch_inline_query_current_chat: query },
     });
     return this;
@@ -138,7 +142,7 @@ export class MenuTemplate {
     query: SwitchInlineQueryChosenChat = {},
   ): this {
     this.operations.push({
-      type: "button",
+      type: "nativeButton",
       data: { text, switch_inline_query_chosen_chat: query },
     });
     return this;
@@ -152,7 +156,7 @@ export class MenuTemplate {
    */
   copyText(text: string, copyText: string | CopyTextButton): this {
     this.operations.push({
-      type: "button",
+      type: "nativeButton",
       data: {
         text,
         copy_text: typeof copyText === "string" ? { text: copyText } : copyText,
@@ -169,7 +173,7 @@ export class MenuTemplate {
    */
   game(text: string): this {
     this.operations.push({
-      type: "button",
+      type: "nativeButton",
       data: { text, callback_game: {} },
     });
     return this;
@@ -184,7 +188,7 @@ export class MenuTemplate {
    */
   pay(text: string): this {
     this.operations.push({
-      type: "button",
+      type: "nativeButton",
       data: { text, pay: true },
     });
     return this;
@@ -204,17 +208,17 @@ export class MenuTemplate {
    * @param renderedMenuId Unique menu ID used to generate callback_data for cb buttons
    * @returns A Menu instance with newly constructed buttons
    */
-  render(renderedMenuId: string): Menu {
+  render(renderedMenuId: string): Menu<C> {
     const inlineKeyboard: InlineKeyboardButton[][] = [];
-    const menuKeyboard: MenuButton[][] = [];
+    const menuKeyboard: MenuButton<C>[][] = [];
     let inlineRow: InlineKeyboardButton[] = [];
-    let menuRow: MenuButton[] = [];
+    let menuRow: MenuButton<C>[] = [];
 
     for (const op of this.operations) {
-      if (op.type === "button") {
+      if (op.type === "nativeButton") {
         inlineRow.push(op.data);
-        menuRow.push(op.data as MenuButton);
-      } else if (op.type === "cbButton") {
+        menuRow.push(op.data as MenuButton<C>);
+      } else if (op.type === "menuButton") {
         const row = inlineKeyboard.length;
         const col = inlineRow.length;
         const callbackData = `${renderedMenuId}:${row}:${col}`;
@@ -223,9 +227,9 @@ export class MenuTemplate {
           callback_data: callbackData,
         };
         inlineRow.push(inlineButton);
-        const menuButton: MenuButton = {
+        const menuButton: MenuButton<C> = {
           ...inlineButton,
-          middleware: op.middleware,
+          handler: op.handler,
         };
         menuRow.push(menuButton);
       } else if (op.type === "row") {

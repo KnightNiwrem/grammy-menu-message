@@ -1,13 +1,12 @@
+import type { Context } from "grammy";
 import type { InlineKeyboardButton } from "grammy/types";
-import type { MiddlewareFn } from "grammy";
-
-export type MenuButton = InlineKeyboardButton & { middleware?: MiddlewareFn };
+import type { MenuButton } from "./types.ts";
 
 /**
  * Menu represents a rendered menu with an inline keyboard and associated callback handlers.
  * It maintains full button information including middleware references.
  */
-export class Menu {
+export class Menu<C extends Context> {
   /**
    * Creates a new Menu instance.
    * @param renderedMenuId Unique identifier for this rendered menu
@@ -15,8 +14,9 @@ export class Menu {
    * @param inlineKeyboard The inline keyboard button layout for Telegram API
    */
   constructor(
-    private readonly renderedMenuId: string,
-    public readonly menuKeyboard: MenuButton[][],
+    public readonly renderedMenuId: string,
+    public readonly templateMenuId: string,
+    public readonly menuKeyboard: MenuButton<C>[][],
     private readonly inlineKeyboard: InlineKeyboardButton[][],
   ) {}
 
