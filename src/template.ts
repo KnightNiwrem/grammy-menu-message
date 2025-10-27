@@ -205,44 +205,44 @@ export class MenuTemplate {
    * @returns A Menu instance with newly constructed buttons
    */
   render(renderedMenuId: string): Menu {
-    const rows: InlineKeyboardButton[][] = [];
-    const menuRows: MenuButton[][] = [];
-    let currentRow: InlineKeyboardButton[] = [];
-    let currentMenuRow: MenuButton[] = [];
+    const keyboardRows: InlineKeyboardButton[][] = [];
+    const buttonRows: MenuButton[][] = [];
+    let currentKeyboardRow: InlineKeyboardButton[] = [];
+    let currentButtonRow: MenuButton[] = [];
 
     for (const op of this.operations) {
       if (op.type === "button") {
-        currentRow.push(op.data);
-        currentMenuRow.push(op.data as MenuButton);
+        currentKeyboardRow.push(op.data);
+        currentButtonRow.push(op.data as MenuButton);
       } else if (op.type === "cbButton") {
-        const rowNum = rows.length;
-        const colNum = currentRow.length;
-        const callbackData = `${renderedMenuId}:${rowNum}:${colNum}`;
+        const rowIndex = keyboardRows.length;
+        const colIndex = currentKeyboardRow.length;
+        const callbackData = `${renderedMenuId}:${rowIndex}:${colIndex}`;
         const button: InlineKeyboardButton = {
           text: op.label,
           callback_data: callbackData,
         };
-        currentRow.push(button);
+        currentKeyboardRow.push(button);
         const menuButton: MenuButton = {
           ...button,
           middleware: op.middleware,
         };
-        currentMenuRow.push(menuButton);
+        currentButtonRow.push(menuButton);
       } else if (op.type === "row") {
-        if (currentRow.length > 0) {
-          rows.push(currentRow);
-          menuRows.push(currentMenuRow);
-          currentRow = [];
-          currentMenuRow = [];
+        if (currentKeyboardRow.length > 0) {
+          keyboardRows.push(currentKeyboardRow);
+          buttonRows.push(currentButtonRow);
+          currentKeyboardRow = [];
+          currentButtonRow = [];
         }
       }
     }
 
-    if (currentRow.length > 0) {
-      rows.push(currentRow);
-      menuRows.push(currentMenuRow);
+    if (currentKeyboardRow.length > 0) {
+      keyboardRows.push(currentKeyboardRow);
+      buttonRows.push(currentButtonRow);
     }
 
-    return new Menu(renderedMenuId, menuRows, rows);
+    return new Menu(renderedMenuId, buttonRows, keyboardRows);
   }
 }
