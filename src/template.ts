@@ -208,7 +208,7 @@ export class MenuTemplate<C extends Context> {
    * @param renderedMenuId Unique menu ID used to generate callback_data for cb buttons
    * @returns A Menu instance with newly constructed buttons
    */
-  render(renderedMenuId: string): Menu<C> {
+  render(templateMenuId: string, renderedMenuId: string): Menu<C> {
     const inlineKeyboard: InlineKeyboardButton[][] = [];
     const menuKeyboard: MenuButton<C>[][] = [];
     let inlineRow: InlineKeyboardButton[] = [];
@@ -247,6 +247,11 @@ export class MenuTemplate<C extends Context> {
       menuKeyboard.push(menuRow);
     }
 
-    return new Menu(renderedMenuId, menuKeyboard, inlineKeyboard);
+    return new Menu(
+      templateMenuId,
+      renderedMenuId,
+      menuKeyboard,
+      inlineKeyboard,
+    );
   }
 }

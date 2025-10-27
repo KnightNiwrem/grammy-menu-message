@@ -14,8 +14,8 @@ export class Menu<C extends Context> {
    * @param inlineKeyboard The inline keyboard button layout for Telegram API
    */
   constructor(
-    public readonly renderedMenuId: string,
     public readonly templateMenuId: string,
+    public readonly renderedMenuId: string,
     public readonly menuKeyboard: MenuButton<C>[][],
     private readonly inlineKeyboard: InlineKeyboardButton[][],
   ) {}

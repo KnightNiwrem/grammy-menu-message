@@ -33,7 +33,10 @@ export class MenuRegistry<C extends Context> {
     this.composer.use(async (ctx, next) => {
       const keyId = `${this.storageKeyPrefix}${this.storageKeyGenerator(ctx)}`;
       ctx.api.config.use(async (prev, method, payload, signal) => {
-        if (!payload || !("reply_markup" in payload) || !payload.reply_markup || !("inline_keyboard" in payload.reply_markup)) {
+        if (
+          !payload || !("reply_markup" in payload) || !payload.reply_markup ||
+          !("inline_keyboard" in payload.reply_markup)
+        ) {
           return prev(method, payload, signal);
         }
 
@@ -43,7 +46,10 @@ export class MenuRegistry<C extends Context> {
         }
 
         const inlineKeyboard = menu.inline_keyboard;
-        payload = { ...payload, reply_markup: { inline_keyboard: inlineKeyboard } };
+        payload = {
+          ...payload,
+          reply_markup: { inline_keyboard: inlineKeyboard },
+        };
         if (this.storage) {
           const menuMessageData = await this.storage.read(keyId) ??
             MenuRegistry.createEmptyMenuMessageData();
@@ -51,7 +57,7 @@ export class MenuRegistry<C extends Context> {
             renderedMenuId: menu.renderedMenuId,
             templateMenuId: menu.templateMenuId,
             timestamp: Date.now(),
-          }
+          };
           menuMessageData.navigationHistory.push(menuNavigationHistoryRecord);
         }
         return prev(method, payload, signal);
@@ -87,8 +93,8 @@ export class MenuRegistry<C extends Context> {
    * @param templateId The unique identifier for the menu template
    * @param template The MenuTemplate instance to register
    */
-  register(templateId: string, template: MenuTemplate<C>): void {
-    this.templates.set(templateId, template);
+  register(templateMenuId: string, template: MenuTemplate<C>): void {
+    this.templates.set(templateMenuId, template);
   }
 
   /**
@@ -96,8 +102,8 @@ export class MenuRegistry<C extends Context> {
    * @param templateId The unique identifier of the menu template
    * @returns The MenuTemplate instance, or undefined if not found
    */
-  get(templateId: string): MenuTemplate<C> | undefined {
-    return this.templates.get(templateId);
+  get(templateMenuId: string): MenuTemplate<C> | undefined {
+    return this.templates.get(templateMenuId);
   }
 
   /**
@@ -105,8 +111,8 @@ export class MenuRegistry<C extends Context> {
    * @param templateId The unique identifier of the menu template
    * @returns true if the template is registered, false otherwise
    */
-  has(templateId: string): boolean {
-    return this.templates.has(templateId);
+  has(templateMenuId: string): boolean {
+    return this.templates.has(templateMenuId);
   }
 
   /**
@@ -115,14 +121,16 @@ export class MenuRegistry<C extends Context> {
    * @returns The rendered Menu instance
    * @throws If the template is not found in the registry
    */
-  menu(templateId: string): Menu<C> {
-    const template = this.get(templateId);
+  menu(templateMenuId: string): Menu<C> {
+    const template = this.get(templateMenuId);
     if (!template) {
-      throw new Error(`Menu template '${templateId}' not found in registry`);
+      throw new Error(
+        `Menu template '${templateMenuId}' not found in registry`,
+      );
     }
 
     const renderedMenuId = nanoid();
-    const renderedMenu = template.render(renderedMenuId);
+    const renderedMenu = template.render(templateMenuId, renderedMenuId);
     this.renderedMenus.set(renderedMenuId, renderedMenu);
     return renderedMenu;
   }
@@ -156,7 +164,7 @@ export class MenuRegistry<C extends Context> {
         continue;
       }
 
-      const renderedMenu = template.render(renderedMenuId);
+      const renderedMenu = template.render(templateMenuId, renderedMenuId);
       this.renderedMenus.set(renderedMenuId, renderedMenu);
     }
     this.loadedStorageKeyIds.add(keyId);
