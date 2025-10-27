@@ -6,9 +6,9 @@ import { Menu } from "./menu.ts";
 import type { MenuMessageData, MenuNavigationHistoryRecord } from "./types.ts";
 
 /**
- * MenuRegistry manages registered menu templates indexed by their template IDs.
- * Allows users to register and retrieve MenuTemplate instances.
- * When provided with a StorageAdapter, persists rendered menu ID to template ID mappings.
+ * MenuRegistry manages registered menu templates and their rendered instances.
+ * Indexes templates by their template IDs and tracks rendered menus for callback routing.
+ * When provided with a StorageAdapter, persists navigation history for menu messages.
  */
 export class MenuRegistry<C extends Context> {
   private templates: Map<string, MenuTemplate<C>> = new Map();
@@ -90,7 +90,7 @@ export class MenuRegistry<C extends Context> {
 
   /**
    * Registers a MenuTemplate with the given template ID.
-   * @param templateId The unique identifier for the menu template
+   * @param templateMenuId The unique identifier for the menu template
    * @param template The MenuTemplate instance to register
    */
   register(templateMenuId: string, template: MenuTemplate<C>): void {
@@ -99,7 +99,7 @@ export class MenuRegistry<C extends Context> {
 
   /**
    * Retrieves a registered MenuTemplate by its ID.
-   * @param templateId The unique identifier of the menu template
+   * @param templateMenuId The unique identifier of the menu template
    * @returns The MenuTemplate instance, or undefined if not found
    */
   get(templateMenuId: string): MenuTemplate<C> | undefined {
@@ -108,7 +108,7 @@ export class MenuRegistry<C extends Context> {
 
   /**
    * Checks if a menu template is registered.
-   * @param templateId The unique identifier of the menu template
+   * @param templateMenuId The unique identifier of the menu template
    * @returns true if the template is registered, false otherwise
    */
   has(templateMenuId: string): boolean {
@@ -116,8 +116,9 @@ export class MenuRegistry<C extends Context> {
   }
 
   /**
-   * Renders a menu from a registered template and appends it to the internal registry.
-   * @param templateId The unique identifier of the menu template to render
+   * Renders a menu from a registered template and tracks it in the internal registry.
+   * Generates a unique renderedMenuId for this specific instance.
+   * @param templateMenuId The unique identifier of the menu template to render
    * @returns The rendered Menu instance
    * @throws If the template is not found in the registry
    */

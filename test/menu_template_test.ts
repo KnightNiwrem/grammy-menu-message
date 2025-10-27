@@ -7,7 +7,7 @@ describe("MenuTemplate", () => {
     it("should add a callback button to the current row", () => {
       const template = new MenuTemplate();
       template.rawCb("Click me", "btn_1");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard).toHaveLength(1);
       expect(menu.inline_keyboard[0]).toHaveLength(1);
@@ -26,7 +26,7 @@ describe("MenuTemplate", () => {
     it("should add multiple buttons in the same row", () => {
       const template = new MenuTemplate();
       template.rawCb("Left", "left").rawCb("Right", "right");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0]).toHaveLength(2);
       expect(
@@ -40,11 +40,70 @@ describe("MenuTemplate", () => {
     });
   });
 
+  describe("cb method", () => {
+    it("should add a callback button with generated callback_data", () => {
+      const template = new MenuTemplate();
+      template.cb("Click me");
+      const menu = template.render("template-1", "rendered-1");
+
+      expect(menu.inline_keyboard).toHaveLength(1);
+      expect(menu.inline_keyboard[0]).toHaveLength(1);
+      expect(menu.inline_keyboard[0][0]).toEqual({
+        text: "Click me",
+        callback_data: "rendered-1:0:0",
+      });
+    });
+
+    it("should generate position-based callback_data", () => {
+      const template = new MenuTemplate();
+      template.cb("A").cb("B").row().cb("C");
+      const menu = template.render("template-1", "rendered-1");
+
+      expect(
+        (menu.inline_keyboard[0][0] as { callback_data?: string })
+          .callback_data,
+      ).toBe("rendered-1:0:0");
+      expect(
+        (menu.inline_keyboard[0][1] as { callback_data?: string })
+          .callback_data,
+      ).toBe("rendered-1:0:1");
+      expect(
+        (menu.inline_keyboard[1][0] as { callback_data?: string })
+          .callback_data,
+      ).toBe("rendered-1:1:0");
+    });
+
+    it("should allow method chaining", () => {
+      const template = new MenuTemplate();
+      const result = template.cb("Button");
+      expect(result).toBe(template);
+    });
+
+    it("should accept optional handler", () => {
+      const template = new MenuTemplate();
+      const handler = async () => {};
+      template.cb("Button", { handler });
+      const menu = template.render("template-1", "rendered-1");
+
+      expect(menu.menuKeyboard[0][0]).toHaveProperty("handler");
+      expect(menu.menuKeyboard[0][0].handler).toBe(handler);
+    });
+
+    it("should use default pass-through handler when not provided", () => {
+      const template = new MenuTemplate();
+      template.cb("Button");
+      const menu = template.render("template-1", "rendered-1");
+
+      expect(menu.menuKeyboard[0][0]).toHaveProperty("handler");
+      expect(menu.menuKeyboard[0][0].handler).toBeDefined();
+    });
+  });
+
   describe("url method", () => {
     it("should add a URL button", () => {
       const template = new MenuTemplate();
       template.url("Visit", "https://example.com");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Visit",
@@ -55,7 +114,7 @@ describe("MenuTemplate", () => {
     it("should accept tg:// URLs", () => {
       const template = new MenuTemplate();
       template.url("Open", "tg://user?id=123");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect((menu.inline_keyboard[0][0] as { url?: string }).url).toBe(
         "tg://user?id=123",
@@ -65,7 +124,7 @@ describe("MenuTemplate", () => {
     it("should allow chaining with other methods", () => {
       const template = new MenuTemplate();
       template.url("Link", "https://example.com").rawCb("Button", "data");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0]).toHaveLength(2);
       expect((menu.inline_keyboard[0][0] as { url?: string }).url).toBe(
@@ -82,7 +141,7 @@ describe("MenuTemplate", () => {
     it("should add a web app button with string URL", () => {
       const template = new MenuTemplate();
       template.webApp("Web App", "https://example.com/app");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Web App",
@@ -93,7 +152,7 @@ describe("MenuTemplate", () => {
     it("should add a web app button with WebAppInfo object", () => {
       const template = new MenuTemplate();
       template.webApp("Web App", { url: "https://example.com/app" });
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Web App",
@@ -106,7 +165,7 @@ describe("MenuTemplate", () => {
     it("should add a login button with string URL", () => {
       const template = new MenuTemplate();
       template.login("Login", "https://example.com/auth");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Login",
@@ -120,7 +179,7 @@ describe("MenuTemplate", () => {
         url: "https://example.com/auth",
         forward_text: "Login to Example",
       });
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Login",
@@ -136,7 +195,7 @@ describe("MenuTemplate", () => {
     it("should add a switch inline button with empty query", () => {
       const template = new MenuTemplate();
       template.switchInline("Share");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Share",
@@ -147,7 +206,7 @@ describe("MenuTemplate", () => {
     it("should add a switch inline button with query", () => {
       const template = new MenuTemplate();
       template.switchInline("Search", "cats");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Search",
@@ -160,7 +219,7 @@ describe("MenuTemplate", () => {
     it("should add a switch inline current button with empty query", () => {
       const template = new MenuTemplate();
       template.switchInlineCurrent("Share");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Share",
@@ -171,7 +230,7 @@ describe("MenuTemplate", () => {
     it("should add a switch inline current button with query", () => {
       const template = new MenuTemplate();
       template.switchInlineCurrent("Share Here", "dogs");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Share Here",
@@ -184,7 +243,7 @@ describe("MenuTemplate", () => {
     it("should add a switch inline chosen button with default query", () => {
       const template = new MenuTemplate();
       template.switchInlineChosen("Choose Chat");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Choose Chat",
@@ -195,7 +254,7 @@ describe("MenuTemplate", () => {
     it("should add a switch inline chosen button with custom query", () => {
       const template = new MenuTemplate();
       template.switchInlineChosen("Share", { allow_user_chats: true });
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Share",
@@ -208,7 +267,7 @@ describe("MenuTemplate", () => {
     it("should add a copy text button with string", () => {
       const template = new MenuTemplate();
       template.copyText("Copy", "Hello, World!");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Copy",
@@ -219,7 +278,7 @@ describe("MenuTemplate", () => {
     it("should add a copy text button with CopyTextButton object", () => {
       const template = new MenuTemplate();
       template.copyText("Copy", { text: "Secret code: 12345" });
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Copy",
@@ -232,7 +291,7 @@ describe("MenuTemplate", () => {
     it("should add a game button", () => {
       const template = new MenuTemplate();
       template.game("Play Game");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Play Game",
@@ -245,7 +304,7 @@ describe("MenuTemplate", () => {
     it("should add a payment button", () => {
       const template = new MenuTemplate();
       template.pay("Pay Now");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard[0][0]).toEqual({
         text: "Pay Now",
@@ -258,7 +317,7 @@ describe("MenuTemplate", () => {
     it("should create a new row", () => {
       const template = new MenuTemplate();
       template.rawCb("First", "1").row().rawCb("Second", "2");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard).toHaveLength(2);
       expect(
@@ -274,7 +333,7 @@ describe("MenuTemplate", () => {
     it("should not create empty rows", () => {
       const template = new MenuTemplate();
       template.rawCb("Button", "btn").row().row().rawCb("Next", "next");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard).toHaveLength(2);
     });
@@ -287,7 +346,7 @@ describe("MenuTemplate", () => {
         .row()
         .rawCb("C", "c")
         .rawCb("D", "d");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard).toHaveLength(2);
       expect(menu.inline_keyboard[0]).toHaveLength(2);
@@ -299,25 +358,37 @@ describe("MenuTemplate", () => {
     it("should return a Menu instance", () => {
       const template = new MenuTemplate();
       template.rawCb("Test", "test");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu).toHaveProperty("inline_keyboard");
+      expect(menu).toHaveProperty("templateMenuId");
+      expect(menu).toHaveProperty("renderedMenuId");
+    });
+
+    it("should set templateMenuId and renderedMenuId correctly", () => {
+      const template = new MenuTemplate();
+      template.rawCb("Test", "test");
+      const menu = template.render("my-template", "my-rendered");
+
+      expect(menu.templateMenuId).toBe("my-template");
+      expect(menu.renderedMenuId).toBe("my-rendered");
     });
 
     it("should create fresh instance each time render is called", () => {
       const template = new MenuTemplate();
       template.rawCb("Button", "data");
 
-      const menu1 = template.render("test");
-      const menu2 = template.render("test");
+      const menu1 = template.render("template-1", "rendered-1");
+      const menu2 = template.render("template-1", "rendered-2");
 
       expect(menu1.inline_keyboard).not.toBe(menu2.inline_keyboard);
       expect(menu1.inline_keyboard).toEqual(menu2.inline_keyboard);
+      expect(menu1.renderedMenuId).not.toBe(menu2.renderedMenuId);
     });
 
     it("should handle empty template", () => {
       const template = new MenuTemplate();
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard).toHaveLength(0);
     });
@@ -325,10 +396,27 @@ describe("MenuTemplate", () => {
     it("should finalize pending row on render", () => {
       const template = new MenuTemplate();
       template.rawCb("A", "a").rawCb("B", "b");
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard).toHaveLength(1);
       expect(menu.inline_keyboard[0]).toHaveLength(2);
+    });
+
+    it("should generate different callback_data for cb buttons with different renderedMenuId", () => {
+      const template = new MenuTemplate();
+      template.cb("Button");
+
+      const menu1 = template.render("template-1", "rendered-1");
+      const menu2 = template.render("template-1", "rendered-2");
+
+      expect(
+        (menu1.inline_keyboard[0][0] as { callback_data?: string })
+          .callback_data,
+      ).toBe("rendered-1:0:0");
+      expect(
+        (menu2.inline_keyboard[0][0] as { callback_data?: string })
+          .callback_data,
+      ).toBe("rendered-2:0:0");
     });
   });
 
@@ -344,7 +432,7 @@ describe("MenuTemplate", () => {
         .row()
         .pay("Purchase");
 
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard).toHaveLength(3);
       expect(menu.inline_keyboard[0]).toHaveLength(2);
@@ -369,7 +457,7 @@ describe("MenuTemplate", () => {
         .game("Game")
         .pay("Pay");
 
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard).toHaveLength(5);
     });
@@ -385,12 +473,38 @@ describe("MenuTemplate", () => {
         .row()
         .rawCb("6", "6");
 
-      const menu = template.render("test");
+      const menu = template.render("template-1", "rendered-1");
 
       expect(menu.inline_keyboard).toHaveLength(3);
       expect(menu.inline_keyboard[0]).toHaveLength(3);
       expect(menu.inline_keyboard[1]).toHaveLength(2);
       expect(menu.inline_keyboard[2]).toHaveLength(1);
+    });
+
+    it("should mix rawCb and cb buttons correctly", () => {
+      const template = new MenuTemplate();
+      template
+        .rawCb("Raw", "raw_data")
+        .cb("Auto")
+        .row()
+        .cb("Auto2")
+        .url("Link", "https://example.com");
+
+      const menu = template.render("template-1", "rendered-1");
+
+      expect(menu.inline_keyboard).toHaveLength(2);
+      expect(
+        (menu.inline_keyboard[0][0] as { callback_data?: string })
+          .callback_data,
+      ).toBe("raw_data");
+      expect(
+        (menu.inline_keyboard[0][1] as { callback_data?: string })
+          .callback_data,
+      ).toBe("rendered-1:0:1");
+      expect(
+        (menu.inline_keyboard[1][0] as { callback_data?: string })
+          .callback_data,
+      ).toBe("rendered-1:1:0");
     });
   });
 
@@ -399,14 +513,36 @@ describe("MenuTemplate", () => {
       const template = new MenuTemplate();
       template.rawCb("Button", "data").row();
 
-      const menu1 = template.render("test");
-      const menu2 = template.render("test");
-      const menu3 = template.render("test");
+      const menu1 = template.render("template-1", "rendered-1");
+      const menu2 = template.render("template-1", "rendered-2");
+      const menu3 = template.render("template-1", "rendered-3");
 
       expect(menu1.inline_keyboard).toEqual(menu2.inline_keyboard);
       expect(menu2.inline_keyboard).toEqual(menu3.inline_keyboard);
       expect(menu1.inline_keyboard).not.toBe(menu2.inline_keyboard);
       expect(menu2.inline_keyboard).not.toBe(menu3.inline_keyboard);
+    });
+  });
+
+  describe("Menu class", () => {
+    it("should have correct properties after render", () => {
+      const template = new MenuTemplate();
+      template.rawCb("Test", "test");
+      const menu = template.render("my-template", "my-rendered");
+
+      expect(menu.templateMenuId).toBe("my-template");
+      expect(menu.renderedMenuId).toBe("my-rendered");
+      expect(menu.menuKeyboard).toHaveLength(1);
+      expect(menu.inline_keyboard).toHaveLength(1);
+    });
+
+    it("should expose inline_keyboard getter", () => {
+      const template = new MenuTemplate();
+      template.rawCb("Button", "data");
+      const menu = template.render("template-1", "rendered-1");
+
+      const keyboard = menu.inline_keyboard;
+      expect(keyboard).toEqual(menu.inline_keyboard);
     });
   });
 });

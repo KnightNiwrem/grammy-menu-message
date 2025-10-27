@@ -9,7 +9,8 @@ import type { MenuButton } from "./types.ts";
 export class Menu<C extends Context> {
   /**
    * Creates a new Menu instance.
-   * @param renderedMenuId Unique identifier for this rendered menu
+   * @param templateMenuId Unique identifier for the menu template this was rendered from
+   * @param renderedMenuId Unique identifier for this specific rendered menu instance
    * @param menuKeyboard 2D array of button objects with full plugin information
    * @param inlineKeyboard The inline keyboard button layout for Telegram API
    */
