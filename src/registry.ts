@@ -39,9 +39,12 @@ export class MenuRegistry {
         }
 
         for (const menu of this.renderedMenus.values()) {
-          const middleware = menu.getMiddleware(callbackData);
-          if (middleware) {
-            return middleware;
+          for (const row of menu.menuKeyboard) {
+            for (const button of row) {
+              if (button.callback_data === callbackData && button.middleware) {
+                return button.middleware;
+              }
+            }
           }
         }
         return (_ctx, next) => next();

@@ -1,21 +1,23 @@
 import type { InlineKeyboardButton } from "grammy/types";
 import type { MiddlewareFn } from "grammy";
 
+export type MenuButton = InlineKeyboardButton & { middleware?: MiddlewareFn };
+
 /**
  * Menu represents a rendered menu with an inline keyboard and associated callback handlers.
- * It maintains the mapping between callback_data positions and their middleware handlers.
+ * It maintains full button information including middleware references.
  */
 export class Menu {
   /**
    * Creates a new Menu instance.
    * @param renderedMenuId Unique identifier for this rendered menu
-   * @param inlineKeyboard The inline keyboard button layout
-   * @param middlewareMap Map of position (row:col) to middleware handlers
+   * @param menuKeyboard 2D array of button objects with full plugin information
+   * @param inlineKeyboard The inline keyboard button layout for Telegram API
    */
   constructor(
     private readonly renderedMenuId: string,
+    public readonly menuKeyboard: MenuButton[][],
     private readonly inlineKeyboard: InlineKeyboardButton[][],
-    private readonly middlewareMap: Map<string, MiddlewareFn> = new Map(),
   ) {}
 
   /**
@@ -24,25 +26,5 @@ export class Menu {
    */
   get inline_keyboard(): InlineKeyboardButton[][] {
     return this.inlineKeyboard;
-  }
-
-  /**
-   * Gets the middleware handler for a given callback_data, if it exists.
-   * @param callbackData The callback data from the button press
-   * @returns The middleware function if found, undefined otherwise
-   */
-  getMiddleware(callbackData: string): MiddlewareFn | undefined {
-    if (!callbackData.startsWith(this.renderedMenuId + ":")) {
-      return undefined;
-    }
-    return this.middlewareMap.get(callbackData);
-  }
-
-  /**
-   * Gets all middleware entries from this menu.
-   * @returns An array of [callbackData, middleware] tuples
-   */
-  getMiddlewareEntries(): Array<[string, MiddlewareFn]> {
-    return Array.from(this.middlewareMap.entries());
   }
 }
