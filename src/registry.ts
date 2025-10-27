@@ -145,7 +145,7 @@ export class MenuRegistry<C extends Context> {
   }
 
   private async loadMenuMessageData(keyId: string): Promise<void> {
-    if (!this.storage || !this.loadedStorageKeyIds.has(keyId)) {
+    if (!this.storage || this.loadedStorageKeyIds.has(keyId)) {
       this.loadedStorageKeyIds.add(keyId);
       return;
     }

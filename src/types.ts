@@ -18,8 +18,11 @@ export type MenuButtonHandler<C extends Context> = (
  * Extends InlineKeyboardButton.CallbackButton with middleware capabilities.
  */
 export type MenuButton<C extends Context> =
-  & InlineKeyboardButton.CallbackButton
-  & { handler?: MenuButtonHandler<C> };
+  & InlineKeyboardButton
+  & (InlineKeyboardButton.CallbackButton & {
+    handler: MenuButtonHandler<C>;
+    payload?: string;
+  });
 
 /**
  * A single record in the navigation history of a menu message.

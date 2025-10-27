@@ -11,7 +11,12 @@ import type { MenuButton, MenuButtonHandler } from "./types.ts";
 
 type Operation<C extends Context> =
   | { type: "nativeButton"; data: InlineKeyboardButton }
-  | { type: "menuButton"; label: string; handler: MenuButtonHandler<C> }
+  | {
+    type: "menuButton";
+    label: string;
+    handler: MenuButtonHandler<C>;
+    payload?: string;
+  }
   | { type: "row" };
 
 /**
@@ -47,12 +52,14 @@ export class MenuTemplate<C extends Context> {
    */
   cb(
     label: string,
-    options?: { payload?: string; handler?: MenuButtonHandler<C> },
+    handler: MenuButtonHandler<C>,
+    payload?: string,
   ): this {
     this.operations.push({
       type: "menuButton",
       label,
-      handler: options?.handler ?? ((_ctx, next) => next()),
+      handler,
+      payload,
     });
     return this;
   }
@@ -233,6 +240,7 @@ export class MenuTemplate<C extends Context> {
         const menuButton: MenuButton<C> = {
           ...inlineButton,
           handler: op.handler,
+          payload: op.payload,
         };
         menuRow.push(menuButton);
       } else if (op.type === "row") {
