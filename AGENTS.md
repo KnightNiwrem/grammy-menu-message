@@ -22,6 +22,7 @@
 
 - Prefer `async`/`await` over `Promise.then()`, `.catch()`, and `.resolve()` for better readability and error handling.
 - Never swallow errors or allow rejected promises to remain uncaught. Always propagate errors back to the user via thrown exceptions or rejected promises—never use silent error logging as a substitute for proper error handling.
+- Use idiomatic array type syntax: `T[][]` instead of `Array<T[]>`. See [Google TypeScript Style Guide – Arrays](https://google.github.io/styleguide/tsguide.html#arrayt-type).
 
 ## CI Certificate Handling
 

@@ -6,7 +6,7 @@ import type {
   WebAppInfo,
 } from "grammy/types";
 import type { MiddlewareFn } from "grammy";
-import { Menu } from "./menu.ts";
+import { Menu, type MenuButton } from "./menu.ts";
 
 type ButtonDef = InlineKeyboardButton;
 type RowDef = ButtonDef[];
@@ -208,34 +208,44 @@ export class MenuTemplate {
    * @returns A Menu instance with newly constructed buttons
    */
   render(renderedMenuId: string): Menu {
-    const rows: RowDef[] = [];
-    let currentRow: RowDef = [];
-    const middlewareMap: Map<string, MiddlewareFn> = new Map();
+    const rows: InlineKeyboardButton[][] = [];
+    const menuRows: MenuButton[][] = [];
+    let currentRow: InlineKeyboardButton[] = [];
+    let currentMenuRow: MenuButton[] = [];
 
     for (const op of this.operations) {
       if (op.type === "button") {
         currentRow.push(op.data);
+        currentMenuRow.push(op.data as MenuButton);
       } else if (op.type === "cbButton") {
         const rowNum = rows.length;
         const colNum = currentRow.length;
         const callbackData = `${renderedMenuId}:${rowNum}:${colNum}`;
-        currentRow.push({
+        const button: InlineKeyboardButton = {
           text: op.label,
           callback_data: callbackData,
-        });
-        middlewareMap.set(callbackData, op.middleware);
+        };
+        currentRow.push(button);
+        const menuButton: MenuButton = {
+          ...button,
+          middleware: op.middleware,
+        };
+        currentMenuRow.push(menuButton);
       } else if (op.type === "row") {
         if (currentRow.length > 0) {
           rows.push(currentRow);
+          menuRows.push(currentMenuRow);
           currentRow = [];
+          currentMenuRow = [];
         }
       }
     }
 
     if (currentRow.length > 0) {
       rows.push(currentRow);
+      menuRows.push(currentMenuRow);
     }
 
-    return new Menu(renderedMenuId, rows, middlewareMap);
+    return new Menu(renderedMenuId, menuRows, rows);
   }
 }
