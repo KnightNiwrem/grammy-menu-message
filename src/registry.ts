@@ -59,6 +59,7 @@ export class MenuRegistry<C extends Context> {
             timestamp: Date.now(),
           };
           menuMessageData.navigationHistory.push(menuNavigationHistoryRecord);
+          await this.storage.write(keyId, menuMessageData);
         }
         return prev(method, payload, signal);
       });
