@@ -8,8 +8,6 @@ import type {
 import type { MiddlewareFn } from "grammy";
 import { Menu, type MenuButton } from "./menu.ts";
 
-type RowDef = InlineKeyboardButton[];
-
 type Operation =
   | { type: "button"; data: InlineKeyboardButton }
   | { type: "cbButton"; label: string; middleware: MiddlewareFn }
