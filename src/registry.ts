@@ -149,32 +149,11 @@ export class MenuRegistry<C extends Context> {
           return (_ctx, next) => next();
         }
 
-        // For regular messages, verify this menu is still active by checking navigation history
-        if (messageType === "regular") {
-          const navigationData = await this.navigationStorage.read(navKeyId);
-          if (navigationData && navigationData.navigationHistory.length > 0) {
-            const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
-            if (activeMenu.renderedMenuId !== renderedMenuId) {
-              console.warn(
-                `Callback query for rendered menu ${renderedMenuId} on message ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
-              );
-              return (_ctx, next) => next();
-            }
-          }
-        }
-
-        // For inline messages, verify this menu is valid if navigation history cannot be found,
-        // or if it is found and the latest rendered menu id matches
-        if (messageType === MESSAGE_TYPES.INLINE) {
-          const navigationData = await this.navigationStorage.read(navKeyId);
-          if (navigationData && navigationData.navigationHistory.length > 0) {
-            const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
-            if (activeMenu.renderedMenuId !== renderedMenuId) {
-              console.warn(
-                `Callback query for rendered menu ${renderedMenuId} on inline message ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
-              );
-              return (_ctx, next) => next();
-            }
+        // Verify this menu is still active by checking navigation history
+        if (messageType === MESSAGE_TYPES.REGULAR || messageType === MESSAGE_TYPES.INLINE) {
+          const validationMiddleware = await this.validateMenuActiveStatus(renderedMenuId, navKeyId, messageType);
+          if (validationMiddleware) {
+            return validationMiddleware;
           }
         }
 
@@ -324,6 +303,34 @@ export class MenuRegistry<C extends Context> {
    */
   middleware(): MiddlewareFn<C> {
     return this.composer.middleware();
+  }
+
+  /**
+   * Checks if a rendered menu is active by verifying it against navigation history.
+   * The menu is valid if navigation history cannot be found, or if found and the
+   * latest rendered menu id matches the current rendered menu.
+   *
+   * @param renderedMenuId The ID of the currently rendered menu
+   * @param navKeyId The storage key for navigation history lookup
+   * @returns undefined if menu is valid, or a middleware function that skips the menu if validation fails
+   */
+  private async validateMenuActiveStatus(
+    renderedMenuId: string,
+    navKeyId: string,
+    messageType: string,
+  ): Promise<MiddlewareFn<C> | undefined> {
+    const navigationData = await this.navigationStorage.read(navKeyId);
+    if (navigationData && navigationData.navigationHistory.length > 0) {
+      const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
+      if (activeMenu.renderedMenuId !== renderedMenuId) {
+        const messageTypeLabel = messageType === MESSAGE_TYPES.INLINE ? "inline message" : "message";
+        console.warn(
+          `Callback query for rendered menu ${renderedMenuId} on ${messageTypeLabel} ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
+        );
+        return (_ctx, next) => next();
+      }
+    }
+    return undefined;
   }
 
   /**
