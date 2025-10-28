@@ -145,9 +145,12 @@ export class MenuRegistry<C extends Context> {
           messageType = MESSAGE_TYPES.INLINE;
           navKeyId = `${this.storageKeyPrefix}:${messageType}:${ctx.callbackQuery.inline_message_id}`;
         }
+        if (!navKeyId || !messageType) {
+          return (_ctx, next) => next();
+        }
 
         // For regular messages, verify this menu is still active by checking navigation history
-        if (navKeyId && messageType === "regular") {
+        if (messageType === "regular") {
           const navigationData = await this.navigationStorage.read(navKeyId);
           if (navigationData && navigationData.navigationHistory.length > 0) {
             const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
