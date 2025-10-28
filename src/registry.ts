@@ -163,6 +163,21 @@ export class MenuRegistry<C extends Context> {
           }
         }
 
+        // For inline messages, verify this menu is valid if navigation history cannot be found,
+        // or if it is found and the latest rendered menu id matches
+        if (messageType === MESSAGE_TYPES.INLINE) {
+          const navigationData = await this.navigationStorage.read(navKeyId);
+          if (navigationData && navigationData.navigationHistory.length > 0) {
+            const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
+            if (activeMenu.renderedMenuId !== renderedMenuId) {
+              console.warn(
+                `Callback query for rendered menu ${renderedMenuId} on inline message ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
+              );
+              return (_ctx, next) => next();
+            }
+          }
+        }
+
         // Check stored rendered menu information if not yet available
         let renderedMenu = this.renderedMenus.get(renderedMenuId);
         if (!renderedMenu) {
