@@ -11,4 +11,10 @@
 export { Menu } from "./menu.ts";
 export { MenuTemplate } from "./template.ts";
 export { MenuRegistry } from "./registry.ts";
-export type { MenuButton, MenuButtonHandler, MenuNavigationHistoryRecord } from "./types.ts";
+export type {
+  MenuButton,
+  MenuButtonHandler,
+  MenuNavigationHistoryRecord,
+  NavigationHistoryData,
+  RenderedMenuData,
+} from "./types.ts";

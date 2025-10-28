@@ -66,10 +66,10 @@ export class MenuRegistry<C extends Context> {
     this.navigationStorage = options?.navigationStorage ?? new MemorySessionStorage<NavigationHistoryData>();
 
     this.composer = new Composer<C>();
+    // The transformer needs to do the following:
+    // 1. Whichever Menu that is sent must be added to menuStorage
+    // 2. Whichever Menu that is sent, must be appended to navigationStorage
     this.composer.use(async (ctx, next) => {
-      // The transformer needs to do the following:
-      // 1. Whichever Menu that is sent must be added to menuStorage
-      // 2. Whichever Menu that is sent, must be appended to navigationStorage
       ctx.api.config.use(async (prev, method, payload, signal) => {
         if (
           !payload || !("reply_markup" in payload) || !payload.reply_markup
