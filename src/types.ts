@@ -3,9 +3,13 @@ import type { InlineKeyboardButton } from "grammy/types";
 
 /**
  * Handler function for menu button callbacks.
- * @param ctx The grammY context object
- * @param next Function to pass control to the next middleware
- * @param payload Reserved for future use (currently unused)
+ * Invoked by the MenuRegistry middleware when a menu button is pressed.
+ *
+ * @template C The grammY Context type
+ * @param ctx The grammY context object for the callback query
+ * @param next Function to pass control to the next middleware in the chain
+ * @param payload Optional data passed from the button definition (reserved for future use)
+ * @returns A Promise that resolves when the handler completes, or void for synchronous handlers
  */
 export type MenuButtonHandler<C extends Context> = (
   ctx: C,
@@ -14,8 +18,11 @@ export type MenuButtonHandler<C extends Context> = (
 ) => Promise<void> | void;
 
 /**
- * Represents a callback button with an optional handler function.
- * Extends InlineKeyboardButton.CallbackButton with middleware capabilities.
+ * Represents a callback button with an optional handler function and payload.
+ * Extends InlineKeyboardButton to include middleware capabilities for menu buttons
+ * created via MenuTemplate.cb(), while allowing native button types from other methods.
+ *
+ * @template C The grammY Context type
  */
 export type MenuButton<C extends Context> =
   | InlineKeyboardButton
@@ -25,31 +32,41 @@ export type MenuButton<C extends Context> =
   });
 
 /**
- * Stored information on rendered menus
- * Indexed by storage key
- * Typically, keyPrefix:menus:renderedMenuId
+ * Stored information about a rendered menu instance.
+ * Used to reconstruct menus from storage when handling callbacks after bot restarts.
+ *
+ * Storage key format: `${keyPrefix}:menus:${renderedMenuId}`
  */
 export interface RenderedMenuData {
+  /** The template menu ID this menu was rendered from */
   templateMenuId: string;
+  /** Unix timestamp (milliseconds) when the menu was rendered */
   timestamp: number;
 }
 
 /**
  * A single record in the navigation history of a menu message.
- * Tracks which menus were rendered for a specific message.
+ * Tracks which menus were rendered for a specific message over time.
+ * Multiple records can exist for the same message as users navigate through different menus.
  */
 export interface MenuNavigationHistoryRecord {
+  /** The unique ID of the rendered menu instance */
   renderedMenuId: string;
+  /** The template ID the menu was rendered from */
   templateMenuId: string;
+  /** Unix timestamp (milliseconds) when this menu was sent/updated */
   timestamp: number;
 }
 
 /**
  * Per-message data stored for menu messages.
- * Indexed by storage key
- * Typically, keyPrefix:regular:chatId:msgId for non-inline messages
- * Typically, keyPrefix:inline:inlineMsgId for inline messages
+ * Maintains the complete navigation history for a single message entity.
+ *
+ * Storage key format:
+ * - Regular messages: `${keyPrefix}:regular:${chatId}:${messageId}`
+ * - Inline messages: `${keyPrefix}:inline:${inlineMessageId}`
  */
 export interface NavigationHistoryData {
+  /** Ordered array of navigation records, oldest first */
   navigationHistory: MenuNavigationHistoryRecord[];
 }

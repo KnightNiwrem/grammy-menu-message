@@ -16,14 +16,28 @@ type Operation<C extends Context> =
 
 /**
  * MenuTemplate defines the structure of a menu using a builder pattern.
- * It provides methods to add buttons and organize them into rows.
- * Objects are created fresh on each render() call.
+ * Templates are reusable definitions that can be rendered multiple times into Menu instances.
+ * Each render() call produces a fresh Menu with newly generated callback data.
+ *
+ * @template C The grammY Context type
+ *
+ * @example
+ * ```typescript
+ * const template = new MenuTemplate<Context>()
+ *   .cb("Option 1", async (ctx) => { await ctx.answerCallbackQuery("1"); })
+ *   .cb("Option 2", async (ctx) => { await ctx.answerCallbackQuery("2"); })
+ *   .row()
+ *   .url("Visit Website", "https://example.com");
+ * ```
  */
 export class MenuTemplate<C extends Context> {
   private operations: Operation<C>[] = [];
 
   /**
-   * Adds a callback button to the current row.
+   * Adds a raw callback button to the current row.
+   * The callback_data is provided directly without middleware handling.
+   * Useful when you want to handle callbacks outside of the menu system.
+   *
    * @param label The text displayed on the button
    * @param callbackData The callback data sent when the button is pressed
    * @returns this for method chaining
@@ -37,12 +51,21 @@ export class MenuTemplate<C extends Context> {
   }
 
   /**
-   * Adds a callback button controlled by middleware to the current row.
+   * Adds a callback button with middleware handler to the current row.
    * The callback_data is generated automatically during render using the button's position.
+   * The handler will be invoked by the MenuRegistry middleware when the button is pressed.
+   *
    * @param label The text displayed on the button
    * @param handler The middleware function to handle the callback
-   * @param payload Optional data reserved for future use (currently unused)
+   * @param payload Optional data passed to the handler (reserved for future use)
    * @returns this for method chaining
+   *
+   * @example
+   * ```typescript
+   * template.cb("Click me", async (ctx) => {
+   *   await ctx.answerCallbackQuery("Button clicked!");
+   * });
+   * ```
    */
   cb(label: string, handler: MenuButtonHandler<C>, payload?: string): this {
     this.operations.push({
@@ -56,6 +79,8 @@ export class MenuTemplate<C extends Context> {
 
   /**
    * Adds a URL button to the current row.
+   * When pressed, opens the specified URL in the user's browser.
+   *
    * @param text The text displayed on the button
    * @param url HTTP or tg:// URL to be opened when the button is pressed
    * @returns this for method chaining
@@ -70,8 +95,10 @@ export class MenuTemplate<C extends Context> {
 
   /**
    * Adds a web app button to the current row.
+   * When pressed, opens the specified Web App with additional data.
+   *
    * @param text The text displayed on the button
-   * @param url An HTTPS URL of a Web App to be opened with additional data
+   * @param url An HTTPS URL of a Web App, or a WebAppInfo object
    * @returns this for method chaining
    */
   webApp(text: string, url: string | WebAppInfo): this {
@@ -87,8 +114,10 @@ export class MenuTemplate<C extends Context> {
 
   /**
    * Adds a login button to the current row.
+   * Used for Telegram Login Widget integration.
+   *
    * @param text The text displayed on the button
-   * @param loginUrl The login URL as string or LoginUrl object
+   * @param loginUrl The login URL as string or LoginUrl object with additional parameters
    * @returns this for method chaining
    */
   login(text: string, loginUrl: string | LoginUrl): this {
@@ -104,8 +133,10 @@ export class MenuTemplate<C extends Context> {
 
   /**
    * Adds an inline query button to the current row.
+   * Pressing the button prompts the user to select a chat and inserts the bot's username with the query.
+   *
    * @param text The text displayed on the button
-   * @param query The optional inline query string to prefill
+   * @param query The optional inline query string to prefill (defaults to empty string)
    * @returns this for method chaining
    */
   switchInline(text: string, query = ""): this {
@@ -118,8 +149,10 @@ export class MenuTemplate<C extends Context> {
 
   /**
    * Adds an inline query button for the current chat to the current row.
+   * Pressing the button inserts the bot's username and query in the current chat's input field.
+   *
    * @param text The text displayed on the button
-   * @param query The optional inline query string to prefill
+   * @param query The optional inline query string to prefill (defaults to empty string)
    * @returns this for method chaining
    */
   switchInlineCurrent(text: string, query = ""): this {
@@ -132,8 +165,10 @@ export class MenuTemplate<C extends Context> {
 
   /**
    * Adds an inline query button with chosen chat filter to the current row.
+   * Allows the user to choose from specific chat types when selecting where to insert the query.
+   *
    * @param text The text displayed on the button
-   * @param query The query object describing which chats can be picked
+   * @param query The query object describing which chats can be picked (defaults to empty object)
    * @returns this for method chaining
    */
   switchInlineChosen(text: string, query: SwitchInlineQueryChosenChat = {}): this {
@@ -146,8 +181,10 @@ export class MenuTemplate<C extends Context> {
 
   /**
    * Adds a copy text button to the current row.
+   * Pressing the button copies the specified text to the user's clipboard.
+   *
    * @param text The text displayed on the button
-   * @param copyText The text to be copied to the clipboard
+   * @param copyText The text to be copied to the clipboard, or a CopyTextButton object
    * @returns this for method chaining
    */
   copyText(text: string, copyText: string | CopyTextButton): this {
@@ -189,6 +226,8 @@ export class MenuTemplate<C extends Context> {
 
   /**
    * Finalizes the current row and starts a new one.
+   * Call this method to move subsequent buttons to a new row in the keyboard.
+   *
    * @returns this for method chaining
    */
   row(): this {
@@ -198,9 +237,12 @@ export class MenuTemplate<C extends Context> {
 
   /**
    * Renders the template into a Menu with a fresh inline keyboard instance.
+   * Each render produces a unique Menu with automatically generated callback data
+   * based on button positions within the keyboard grid.
+   *
    * @param templateMenuId Identifier for the menu template this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
-   * @returns A Menu instance with newly constructed buttons
+   * @returns A Menu instance with newly constructed button arrays
    */
   render(templateMenuId: string, renderedMenuId: string): Menu<C> {
     const inlineKeyboard: InlineKeyboardButton[][] = [];

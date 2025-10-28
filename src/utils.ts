@@ -1,6 +1,12 @@
 import type { Message } from "grammy/types";
 
-// Only test non-exhaustively for the properties we care about
+/**
+ * Type guard to check if an unknown value is a Telegram Message object.
+ * Only tests non-exhaustively for the properties required by this library.
+ *
+ * @param candidate The value to check
+ * @returns true if the candidate is a Message with required properties, false otherwise
+ */
 export function isMessage(candidate: unknown): candidate is Message {
   if (!candidate || typeof candidate !== "object") {
     return false;

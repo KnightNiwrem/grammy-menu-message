@@ -8,8 +8,22 @@ import { isMessage } from "./utils.ts";
 
 /**
  * MenuRegistry manages registered menu templates and their rendered instances.
- * Indexes templates by their template IDs and tracks rendered menus for callback routing.
- * When provided with a StorageAdapter, persists navigation history for menu messages.
+ * Provides middleware to handle menu callback queries and automatic persistence
+ * of navigation history when storage adapters are configured.
+ *
+ * @template C The grammY Context type
+ *
+ * @example
+ * ```typescript
+ * const registry = new MenuRegistry<Context>();
+ * const template = new MenuTemplate<Context>()
+ *   .cb("Button", async (ctx) => {
+ *     await ctx.answerCallbackQuery("Clicked!");
+ *   })
+ *   .row();
+ * registry.register("main", template);
+ * bot.use(registry.middleware());
+ * ```
  */
 export class MenuRegistry<C extends Context> {
   private templates: Map<string, MenuTemplate<C>> = new Map();
@@ -23,9 +37,24 @@ export class MenuRegistry<C extends Context> {
 
   /**
    * Creates a new MenuRegistry instance.
+   *
    * @param options Configuration options for the registry
-   * @param options.storage StorageAdapter for persisting menu navigation history
-   * @param options.keyPrefix Optional prefix for storage keys (defaults to "menu-message:")
+   * @param options.menuStorage StorageAdapter for persisting rendered menu metadata (defaults to MemorySessionStorage)
+   * @param options.navigationStorage StorageAdapter for persisting menu navigation history (defaults to MemorySessionStorage)
+   * @param options.keyPrefix Optional prefix for storage keys (defaults to "menu-message")
+   *
+   * @example
+   * ```typescript
+   * // Using memory storage (default)
+   * const registry = new MenuRegistry<Context>();
+   *
+   * // With custom storage adapters
+   * const registry = new MenuRegistry<Context>({
+   *   menuStorage: new RedisAdapter(),
+   *   navigationStorage: new RedisAdapter(),
+   *   keyPrefix: "mybot"
+   * });
+   * ```
    */
   constructor(options?: {
     keyPrefix?: string;
@@ -158,8 +187,16 @@ export class MenuRegistry<C extends Context> {
 
   /**
    * Registers a MenuTemplate with the given template ID.
+   * Templates must be registered before they can be rendered via the menu() method.
+   *
    * @param templateMenuId The unique identifier for the menu template
    * @param template The MenuTemplate instance to register
+   *
+   * @example
+   * ```typescript
+   * const template = new MenuTemplate<Context>().cb("Hello", handler);
+   * registry.register("greeting", template);
+   * ```
    */
   register(templateMenuId: string, template: MenuTemplate<C>): void {
     this.templates.set(templateMenuId, template);
@@ -167,8 +204,17 @@ export class MenuRegistry<C extends Context> {
 
   /**
    * Retrieves a registered MenuTemplate by its ID.
+   *
    * @param templateMenuId The unique identifier of the menu template
    * @returns The MenuTemplate instance, or undefined if not found
+   *
+   * @example
+   * ```typescript
+   * const template = registry.get("main");
+   * if (template) {
+   *   // Use the template
+   * }
+   * ```
    */
   get(templateMenuId: string): MenuTemplate<C> | undefined {
     return this.templates.get(templateMenuId);
@@ -176,8 +222,16 @@ export class MenuRegistry<C extends Context> {
 
   /**
    * Checks if a menu template is registered.
+   *
    * @param templateMenuId The unique identifier of the menu template
    * @returns true if the template is registered, false otherwise
+   *
+   * @example
+   * ```typescript
+   * if (registry.has("main")) {
+   *   const menu = registry.menu("main");
+   * }
+   * ```
    */
   has(templateMenuId: string): boolean {
     return this.templates.has(templateMenuId);
@@ -185,10 +239,17 @@ export class MenuRegistry<C extends Context> {
 
   /**
    * Renders a menu from a registered template and tracks it in the internal registry.
-   * Generates a unique renderedMenuId for this specific instance.
+   * Generates a unique renderedMenuId for this specific instance using nanoid.
+   *
    * @param templateMenuId The unique identifier of the menu template to render
    * @returns The rendered Menu instance
-   * @throws If the template is not found in the registry
+   * @throws {Error} If the template is not found in the registry
+   *
+   * @example
+   * ```typescript
+   * const menu = registry.menu("main");
+   * await ctx.reply("Choose an option:", { reply_markup: menu });
+   * ```
    */
   menu(templateMenuId: string): Menu<C> {
     const template = this.get(templateMenuId);
@@ -206,12 +267,26 @@ export class MenuRegistry<C extends Context> {
 
   /**
    * Returns the middleware of the owned Composer.
-   * @returns The middleware function for handling callback queries
+   * This middleware handles menu transformations and callback query routing.
+   * Must be registered with the bot to enable menu functionality.
+   *
+   * @returns The middleware function for handling callback queries and menu transformations
+   *
+   * @example
+   * ```typescript
+   * const registry = new MenuRegistry<Context>();
+   * bot.use(registry.middleware());
+   * ```
    */
   middleware(): MiddlewareFn<C> {
     return this.composer.middleware();
   }
 
+  /**
+   * Creates an empty navigation history data structure.
+   *
+   * @returns A new NavigationHistoryData object with an empty navigation history array
+   */
   private static createEmptyNavigationHistory(): NavigationHistoryData {
     return { navigationHistory: [] };
   }
