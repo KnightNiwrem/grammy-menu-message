@@ -149,32 +149,16 @@ export class MenuRegistry<C extends Context> {
           return (_ctx, next) => next();
         }
 
-        // For regular messages, verify this menu is still active by checking navigation history
-        if (messageType === "regular") {
-          const navigationData = await this.navigationStorage.read(navKeyId);
-          if (navigationData && navigationData.navigationHistory.length > 0) {
-            const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
-            if (activeMenu.renderedMenuId !== renderedMenuId) {
-              console.warn(
-                `Callback query for rendered menu ${renderedMenuId} on message ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
-              );
-              return (_ctx, next) => next();
-            }
-          }
-        }
-
-        // For inline messages, verify this menu is valid if navigation history cannot be found,
-        // or if it is found and the latest rendered menu id matches
-        if (messageType === MESSAGE_TYPES.INLINE) {
-          const navigationData = await this.navigationStorage.read(navKeyId);
-          if (navigationData && navigationData.navigationHistory.length > 0) {
-            const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
-            if (activeMenu.renderedMenuId !== renderedMenuId) {
-              console.warn(
-                `Callback query for rendered menu ${renderedMenuId} on inline message ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
-              );
-              return (_ctx, next) => next();
-            }
+        // Verify this menu is still active by checking navigation history
+        const navigationData = await this.navigationStorage.read(navKeyId);
+        if (navigationData && navigationData.navigationHistory.length > 0) {
+          const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
+          if (activeMenu.renderedMenuId !== renderedMenuId) {
+            const messageLabel = messageType === MESSAGE_TYPES.INLINE ? "inline message" : "message";
+            console.warn(
+              `Callback query for rendered menu ${renderedMenuId} on ${messageLabel} ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
+            );
+            return (_ctx, next) => next();
           }
         }
 
