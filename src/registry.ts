@@ -94,7 +94,6 @@ export class MenuRegistry<C extends Context> {
           await this.navigationStorage.write(navKeyId, menuMessageData);
         }
 
-
         return response;
       });
       await next();
@@ -150,7 +149,7 @@ export class MenuRegistry<C extends Context> {
         if ("handler" in button) {
           return async (ctx, next) => {
             await button.handler(ctx, next, button.payload);
-          }
+          };
         }
         return (_ctx, next) => next();
       },
