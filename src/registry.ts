@@ -4,7 +4,7 @@ import { nanoid } from "nanoid";
 import type { MenuTemplate } from "./template.ts";
 import { Menu } from "./menu.ts";
 import type { MenuNavigationHistoryRecord, NavigationHistoryData, RenderedMenuData } from "./types.ts";
-import { isMessage } from "./utils.ts";
+import { isMessage, MESSAGE_TYPES } from "./utils.ts";
 
 /**
  * MenuRegistry manages registered menu templates and their rendered instances.
@@ -102,14 +102,14 @@ export class MenuRegistry<C extends Context> {
         let navKeyId: string | undefined;
         // Message is returned for method calls on non-inline messages
         if (isMessage(result)) {
-          navKeyId = `${this.storageKeyPrefix}:regular:${result.chat.id}:${result.message_id}`;
+          navKeyId = `${this.storageKeyPrefix}:${MESSAGE_TYPES.REGULAR}:${result.chat.id}:${result.message_id}`;
         }
         // True is returned for method calls on inline messages
         if (
           result === true && "inline_message_id" in payload &&
           !!payload.inline_message_id
         ) {
-          navKeyId = `${this.storageKeyPrefix}:inline:${payload.inline_message_id}`;
+          navKeyId = `${this.storageKeyPrefix}:${MESSAGE_TYPES.INLINE}:${payload.inline_message_id}`;
         }
         if (navKeyId) {
           const menuMessageData = await this.navigationStorage.read(navKeyId) ??
@@ -133,6 +133,32 @@ export class MenuRegistry<C extends Context> {
       async (ctx): Promise<MiddlewareFn<C>> => {
         const callbackData = ctx.callbackQuery.data;
         const [renderedMenuId, rowString, colString] = callbackData.split(":");
+
+        // Extract message identifiers for navigation history lookup
+        let navKeyId: string | undefined;
+        let messageType: string | undefined;
+        if ("message" in ctx.callbackQuery && ctx.callbackQuery.message) {
+          const message = ctx.callbackQuery.message;
+          messageType = MESSAGE_TYPES.REGULAR;
+          navKeyId = `${this.storageKeyPrefix}:${messageType}:${message.chat.id}:${message.message_id}`;
+        } else if ("inline_message_id" in ctx.callbackQuery && ctx.callbackQuery.inline_message_id) {
+          messageType = MESSAGE_TYPES.INLINE;
+          navKeyId = `${this.storageKeyPrefix}:${messageType}:${ctx.callbackQuery.inline_message_id}`;
+        }
+
+        // For regular messages, verify this menu is still active by checking navigation history
+        if (navKeyId && messageType === "regular") {
+          const navigationData = await this.navigationStorage.read(navKeyId);
+          if (navigationData && navigationData.navigationHistory.length > 0) {
+            const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
+            if (activeMenu.renderedMenuId !== renderedMenuId) {
+              console.warn(
+                `Callback query for rendered menu ${renderedMenuId} on message ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
+              );
+              return (_ctx, next) => next();
+            }
+          }
+        }
 
         // Check stored rendered menu information if not yet available
         let renderedMenu = this.renderedMenus.get(renderedMenuId);

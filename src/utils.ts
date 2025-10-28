@@ -22,3 +22,8 @@ export function isMessage(candidate: unknown): candidate is Message {
   }
   return true;
 }
+
+export const MESSAGE_TYPES = {
+  REGULAR: "regular",
+  INLINE: "inline",
+} as const;
