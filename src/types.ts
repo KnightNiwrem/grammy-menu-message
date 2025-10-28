@@ -18,11 +18,21 @@ export type MenuButtonHandler<C extends Context> = (
  * Extends InlineKeyboardButton.CallbackButton with middleware capabilities.
  */
 export type MenuButton<C extends Context> =
-  & InlineKeyboardButton
-  & (InlineKeyboardButton.CallbackButton & {
+  | InlineKeyboardButton
+  | (InlineKeyboardButton.CallbackButton & {
     handler: MenuButtonHandler<C>;
     payload?: string;
   });
+
+/**
+ * Stored information on rendered menus
+ * Indexed by storage key
+ * Typically, keyPrefix:menus:renderedMenuId
+ */
+export interface RenderedMenuData {
+  templateMenuId: string;
+  timestamp: number;
+}
 
 /**
  * A single record in the navigation history of a menu message.
@@ -36,8 +46,10 @@ export interface MenuNavigationHistoryRecord {
 
 /**
  * Per-message data stored for menu messages.
- * Indexed by storage key (typically derived from chatId:messageId).
+ * Indexed by storage key
+ * Typically, keyPrefix:regular:chatId:msgId for non-inline messages
+ * Typically, keyPrefix:inline:inlineMsgId for inline messages
  */
-export interface MenuMessageData {
+export interface NavigationHistoryData {
   navigationHistory: MenuNavigationHistoryRecord[];
 }

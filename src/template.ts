@@ -11,12 +11,7 @@ import type { MenuButton, MenuButtonHandler } from "./types.ts";
 
 type Operation<C extends Context> =
   | { type: "nativeButton"; data: InlineKeyboardButton }
-  | {
-    type: "menuButton";
-    label: string;
-    handler: MenuButtonHandler<C>;
-    payload?: string;
-  }
+  | { type: "menuButton"; label: string; handler: MenuButtonHandler<C>; payload?: string }
   | { type: "row" };
 
 /**
@@ -49,11 +44,7 @@ export class MenuTemplate<C extends Context> {
    * @param payload Optional data reserved for future use (currently unused)
    * @returns this for method chaining
    */
-  cb(
-    label: string,
-    handler: MenuButtonHandler<C>,
-    payload?: string,
-  ): this {
+  cb(label: string, handler: MenuButtonHandler<C>, payload?: string): this {
     this.operations.push({
       type: "menuButton",
       label,
@@ -145,10 +136,7 @@ export class MenuTemplate<C extends Context> {
    * @param query The query object describing which chats can be picked
    * @returns this for method chaining
    */
-  switchInlineChosen(
-    text: string,
-    query: SwitchInlineQueryChosenChat = {},
-  ): this {
+  switchInlineChosen(text: string, query: SwitchInlineQueryChosenChat = {}): this {
     this.operations.push({
       type: "nativeButton",
       data: { text, switch_inline_query_chosen_chat: query },
@@ -165,10 +153,7 @@ export class MenuTemplate<C extends Context> {
   copyText(text: string, copyText: string | CopyTextButton): this {
     this.operations.push({
       type: "nativeButton",
-      data: {
-        text,
-        copy_text: typeof copyText === "string" ? { text: copyText } : copyText,
-      },
+      data: { text, copy_text: typeof copyText === "string" ? { text: copyText } : copyText },
     });
     return this;
   }
@@ -226,7 +211,7 @@ export class MenuTemplate<C extends Context> {
     for (const op of this.operations) {
       if (op.type === "nativeButton") {
         inlineRow.push(op.data);
-        menuRow.push(op.data as MenuButton<C>);
+        menuRow.push(op.data);
       } else if (op.type === "menuButton") {
         const row = inlineKeyboard.length;
         const col = inlineRow.length;
@@ -257,11 +242,6 @@ export class MenuTemplate<C extends Context> {
       menuKeyboard.push(menuRow);
     }
 
-    return new Menu(
-      templateMenuId,
-      renderedMenuId,
-      menuKeyboard,
-      inlineKeyboard,
-    );
+    return new Menu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
   }
 }
