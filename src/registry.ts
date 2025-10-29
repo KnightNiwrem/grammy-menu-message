@@ -3,7 +3,7 @@ import type { MiddlewareFn, StorageAdapter } from "./dep.deno.ts";
 import type { MenuTemplate } from "./template.ts";
 import { Menu } from "./menu.ts";
 import type { MenuNavigationHistoryRecord, NavigationHistoryData, RenderedMenuData } from "./types.ts";
-import { isMessage, MESSAGE_TYPES } from "./utils.ts";
+import { inlineNavStorageKey, isMessage, regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
 
 /**
  * MenuRegistry manages registered menu templates and their rendered instances.
@@ -121,7 +121,8 @@ export class MenuRegistry<C extends Context> {
 
         // Now that we have sent out the menus, we should store them in menuStorage
         for (const menu of menusToStore) {
-          await this.menuStorage.write(menu.renderedMenuId, { timestamp, templateMenuId: menu.templateMenuId });
+          const key = renderedMenuStorageKey(this.storageKeyPrefix, menu.renderedMenuId);
+          await this.menuStorage.write(key, { timestamp, templateMenuId: menu.templateMenuId });
           this.renderedMenus.set(menu.renderedMenuId, menu);
         }
 
@@ -131,16 +132,13 @@ export class MenuRegistry<C extends Context> {
         }
         const menu = menusToStore[0];
 
-        // Determine navKeyId based on response to store to navigationStorge, if able
+        // Determine navKeyId based on response to store to navigationStorage, if able
         let navKeyId: string | undefined;
         if (isMessage(result)) {
-          navKeyId = `${this.storageKeyPrefix}:${MESSAGE_TYPES.REGULAR}:${result.chat.id}:${result.message_id}`;
+          navKeyId = regularNavStorageKey(this.storageKeyPrefix, result.chat.id, result.message_id);
         }
-        if (
-          result === true && "inline_message_id" in payload &&
-          !!payload.inline_message_id
-        ) {
-          navKeyId = `${this.storageKeyPrefix}:${MESSAGE_TYPES.INLINE}:${payload.inline_message_id}`;
+        if (result === true && "inline_message_id" in payload && !!payload.inline_message_id) {
+          navKeyId = inlineNavStorageKey(this.storageKeyPrefix, payload.inline_message_id);
         }
 
         // Store new navigation history entry, if it is a navigation
@@ -172,16 +170,13 @@ export class MenuRegistry<C extends Context> {
 
         // Extract message identifiers for navigation history lookup
         let navKeyId: string | undefined;
-        let messageType: string | undefined;
         if ("message" in ctx.callbackQuery && ctx.callbackQuery.message) {
           const message = ctx.callbackQuery.message;
-          messageType = MESSAGE_TYPES.REGULAR;
-          navKeyId = `${this.storageKeyPrefix}:${messageType}:${message.chat.id}:${message.message_id}`;
+          navKeyId = regularNavStorageKey(this.storageKeyPrefix, message.chat.id, message.message_id);
         } else if ("inline_message_id" in ctx.callbackQuery && ctx.callbackQuery.inline_message_id) {
-          messageType = MESSAGE_TYPES.INLINE;
-          navKeyId = `${this.storageKeyPrefix}:${messageType}:${ctx.callbackQuery.inline_message_id}`;
+          navKeyId = inlineNavStorageKey(this.storageKeyPrefix, ctx.callbackQuery.inline_message_id);
         }
-        if (!navKeyId || !messageType) {
+        if (!navKeyId) {
           return (_ctx, next) => next();
         }
 
@@ -204,7 +199,9 @@ export class MenuRegistry<C extends Context> {
             // If no rendered menu found, and no storage to check, probably callback_data has nothing to do with us
             return (_ctx, next) => next();
           }
-          const renderedMenuData = await this.menuStorage.read(`${this.storageKeyPrefix}:menus:${renderedMenuId}`);
+          const renderedMenuData = await this.menuStorage.read(
+            renderedMenuStorageKey(this.storageKeyPrefix, renderedMenuId),
+          );
           if (!renderedMenuData) {
             // If no rendered menu found anywhere for this candidate rendered menu id, probably nothing to do with us
             return (_ctx, next) => next();
