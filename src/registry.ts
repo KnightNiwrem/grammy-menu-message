@@ -3,7 +3,7 @@ import type { MiddlewareFn, StorageAdapter } from "./dep.deno.ts";
 import type { MenuTemplate } from "./template.ts";
 import { Menu } from "./menu.ts";
 import type { MenuNavigationHistoryRecord, NavigationHistoryData, RenderedMenuData } from "./types.ts";
-import { isMessage, navKeyInline, navKeyRegular, renderedMenuStorageKey } from "./utils.ts";
+import { inlineNavStorageKey, isMessage, regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
 
 /**
  * MenuRegistry manages registered menu templates and their rendered instances.
@@ -135,13 +135,10 @@ export class MenuRegistry<C extends Context> {
         // Determine navKeyId based on response to store to navigationStorage, if able
         let navKeyId: string | undefined;
         if (isMessage(result)) {
-          navKeyId = navKeyRegular(this.storageKeyPrefix, result.chat.id, result.message_id);
+          navKeyId = regularNavStorageKey(this.storageKeyPrefix, result.chat.id, result.message_id);
         }
-        if (
-          result === true && "inline_message_id" in payload &&
-          !!payload.inline_message_id
-        ) {
-          navKeyId = navKeyInline(this.storageKeyPrefix, payload.inline_message_id as string);
+        if (result === true && "inline_message_id" in payload && !!payload.inline_message_id) {
+          navKeyId = inlineNavStorageKey(this.storageKeyPrefix, payload.inline_message_id);
         }
 
         // Store new navigation history entry, if it is a navigation
@@ -175,9 +172,9 @@ export class MenuRegistry<C extends Context> {
         let navKeyId: string | undefined;
         if ("message" in ctx.callbackQuery && ctx.callbackQuery.message) {
           const message = ctx.callbackQuery.message;
-          navKeyId = navKeyRegular(this.storageKeyPrefix, message.chat.id, message.message_id);
+          navKeyId = regularNavStorageKey(this.storageKeyPrefix, message.chat.id, message.message_id);
         } else if ("inline_message_id" in ctx.callbackQuery && ctx.callbackQuery.inline_message_id) {
-          navKeyId = navKeyInline(this.storageKeyPrefix, ctx.callbackQuery.inline_message_id);
+          navKeyId = inlineNavStorageKey(this.storageKeyPrefix, ctx.callbackQuery.inline_message_id);
         }
         if (!navKeyId) {
           return (_ctx, next) => next();

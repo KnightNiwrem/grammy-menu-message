@@ -49,7 +49,7 @@ export function renderedMenuStorageKey(prefix: string, renderedMenuId: string): 
  * @param messageId The message ID in that chat
  * @returns The constructed storage key
  */
-export function navKeyRegular(prefix: string, chatId: number, messageId: number): string {
+export function regularNavStorageKey(prefix: string, chatId: number, messageId: number): string {
   return `${prefix}:${MESSAGE_TYPES.REGULAR}:${chatId}:${messageId}`;
 }
 
@@ -61,6 +61,6 @@ export function navKeyRegular(prefix: string, chatId: number, messageId: number)
  * @param inlineMessageId The inline message ID from Telegram
  * @returns The constructed storage key
  */
-export function navKeyInline(prefix: string, inlineMessageId: string): string {
+export function inlineNavStorageKey(prefix: string, inlineMessageId: string): string {
   return `${prefix}:${MESSAGE_TYPES.INLINE}:${inlineMessageId}`;
 }
