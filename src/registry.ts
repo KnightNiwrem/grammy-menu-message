@@ -65,186 +65,8 @@ export class MenuRegistry<C extends Context> {
     this.navigationStorage = options?.navigationStorage ?? new MemorySessionStorage<NavigationHistoryData>();
 
     this.composer = new Composer<C>();
-    // The transformer needs to do the following:
-    // 1. Whichever Menu that is sent must be added to menuStorage
-    // 2. Whichever Menu that is sent, must be appended to navigationStorage
-    // 3. Override the message text with the Menu's messageText
-    this.composer.use(async (ctx, next) => {
-      ctx.api.config.use(async (prev, method, payload, signal) => {
-        if (!payload) {
-          return prev(method, payload, signal);
-        }
-
-        const menusToStore: Menu<C>[] = [];
-
-        // Handle top-level reply_markup
-        if ("reply_markup" in payload && payload.reply_markup instanceof Menu) {
-          const menu = payload.reply_markup;
-          const inlineKeyboard = menu.inline_keyboard;
-          payload = {
-            ...payload,
-            text: menu.messageText,
-            reply_markup: { inline_keyboard: inlineKeyboard },
-          };
-          menusToStore.push(menu);
-        }
-
-        // Handle results array (e.g., answerInlineQuery)
-        if ("results" in payload && Array.isArray(payload.results)) {
-          payload.results = payload.results.map((result) => {
-            if (
-              result && typeof result === "object" && "reply_markup" in result && result.reply_markup instanceof Menu
-            ) {
-              const menu = result.reply_markup;
-              const inlineKeyboard = menu.inline_keyboard;
-              menusToStore.push(menu);
-              return {
-                ...result,
-                message_text: menu.messageText,
-                reply_markup: { inline_keyboard: inlineKeyboard },
-              };
-            }
-            return result;
-          });
-        }
-
-        if (menusToStore.length === 0) {
-          return prev(method, payload, signal);
-        }
-
-        const response = await prev(method, payload, signal);
-        if (!response.ok) {
-          return response;
-        }
-        const result = response.result;
-        const timestamp = Date.now();
-
-        // Now that we have sent out the menus, we should store them in menuStorage
-        for (const menu of menusToStore) {
-          const key = renderedMenuStorageKey(this.storageKeyPrefix, menu.renderedMenuId);
-          await this.menuStorage.write(key, { timestamp, templateMenuId: menu.templateMenuId });
-          this.renderedMenus.set(menu.renderedMenuId, menu);
-        }
-
-        // Navigation implies sending/editing only 1 menu
-        if (menusToStore.length !== 1) {
-          return response;
-        }
-        const menu = menusToStore[0];
-
-        // Determine navKeyId based on response to store to navigationStorage, if able
-        let navKeyId: string | undefined;
-        if (isMessage(result)) {
-          navKeyId = regularNavStorageKey(this.storageKeyPrefix, result.chat.id, result.message_id);
-        }
-        if (result === true && "inline_message_id" in payload && !!payload.inline_message_id) {
-          navKeyId = inlineNavStorageKey(this.storageKeyPrefix, payload.inline_message_id);
-        }
-
-        // Store new navigation history entry, if it is a navigation
-        if (navKeyId) {
-          const navigationStorageData = await this.navigationStorage.read(navKeyId) ??
-            MenuRegistry.createEmptyNavigationHistory();
-          const navHistory = navigationStorageData.navigationHistory;
-          if (navHistory.length > 0 && navHistory[navHistory.length - 1].renderedMenuId !== menu.renderedMenuId) {
-            const menuNavigationHistoryRecord: MenuNavigationHistoryRecord = {
-              timestamp,
-              renderedMenuId: menu.renderedMenuId,
-              templateMenuId: menu.templateMenuId,
-            };
-            navHistory.push(menuNavigationHistoryRecord);
-            await this.navigationStorage.write(navKeyId, navigationStorageData);
-          }
-        }
-
-        return response;
-      });
-      await next();
-    });
-    // The middleware need to do the following:
-    // 1. If the callback_data belongs to a rendered Menu, it must provide the button handler to use
-    this.composer.on("callback_query:data").lazy(
-      async (ctx): Promise<MiddlewareFn<C>> => {
-        const callbackData = ctx.callbackQuery.data;
-        const [renderedMenuId, rowString, colString] = callbackData.split(":");
-
-        // Extract message identifiers for navigation history lookup
-        let navKeyId: string | undefined;
-        if ("message" in ctx.callbackQuery && ctx.callbackQuery.message) {
-          const message = ctx.callbackQuery.message;
-          navKeyId = regularNavStorageKey(this.storageKeyPrefix, message.chat.id, message.message_id);
-        } else if ("inline_message_id" in ctx.callbackQuery && ctx.callbackQuery.inline_message_id) {
-          navKeyId = inlineNavStorageKey(this.storageKeyPrefix, ctx.callbackQuery.inline_message_id);
-        }
-        if (!navKeyId) {
-          return (_ctx, next) => next();
-        }
-
-        // Verify this menu is still active by checking navigation history
-        const navigationData = await this.navigationStorage.read(navKeyId);
-        if (navigationData && navigationData.navigationHistory.length > 0) {
-          const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
-          if (activeMenu.renderedMenuId !== renderedMenuId) {
-            console.warn(
-              `Callback query for rendered menu ${renderedMenuId} for navigationStorage key ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
-            );
-            return (_ctx, next) => next();
-          }
-        }
-
-        // Check stored rendered menu information if not yet available
-        let renderedMenu = this.renderedMenus.get(renderedMenuId);
-        if (!renderedMenu) {
-          if (!this.menuStorage) {
-            // If no rendered menu found, and no storage to check, probably callback_data has nothing to do with us
-            return (_ctx, next) => next();
-          }
-          const renderedMenuData = await this.menuStorage.read(
-            renderedMenuStorageKey(this.storageKeyPrefix, renderedMenuId),
-          );
-          if (!renderedMenuData) {
-            // If no rendered menu found anywhere for this candidate rendered menu id, probably nothing to do with us
-            return (_ctx, next) => next();
-          }
-
-          const templateMenuId = renderedMenuData.templateMenuId;
-          const templateMenu = this.get(templateMenuId);
-          if (!templateMenu) {
-            // If we did find a rendered menu for this, warn and pass as it may be a rare random key conflict
-            console.warn(
-              `Found template menu id of ${templateMenuId} for rendered menu id of ${renderedMenuId}, but no template menu was registered for this template menun id!`,
-            );
-            return (_ctx, next) => next();
-          }
-
-          renderedMenu = templateMenu.render(templateMenuId, renderedMenuId);
-          this.renderedMenus.set(renderedMenuId, renderedMenu);
-        }
-
-        const row = parseInt(rowString);
-        const col = parseInt(colString);
-        if (
-          !renderedMenuId || isNaN(row) || isNaN(col) || row < 0 || col < 0 ||
-          row >= renderedMenu.menuKeyboard.length || col >= renderedMenu.menuKeyboard[row].length
-        ) {
-          // If row and col makes no sense, warn and pass as maybe nothing to do with us
-          console.warn(
-            `Found rendered menu for id of ${renderedMenuId}, but unable to find correct button for row ${rowString} and col ${colString}!`,
-          );
-          return (_ctx, next) => next();
-        }
-
-        const button = renderedMenu.menuKeyboard[row][col];
-        if ("handler" in button) {
-          return async (ctx, next) => {
-            // Answer callback query for buttons relevant to us
-            await ctx.answerCallbackQuery();
-            await button.handler(ctx, next, button.payload);
-          };
-        }
-        return (_ctx, next) => next();
-      },
-    );
+    this.composer.use(this.createMenuTransformer());
+    this.composer.on("callback_query:data").lazy(this.createCallbackQueryHandler());
   }
 
   /**
@@ -342,6 +164,195 @@ export class MenuRegistry<C extends Context> {
    */
   middleware(): MiddlewareFn<C> {
     return this.composer.middleware();
+  }
+
+  /**
+   * Creates the menu transformer middleware that handles Menu instances in API calls.
+   * The transformer:
+   * 1. Adds sent Menus to menuStorage
+   * 2. Appends sent Menus to navigationStorage
+   * 3. Overrides message text with the Menu's messageText
+   */
+  private createMenuTransformer(): MiddlewareFn<C> {
+    return async (ctx, next) => {
+      ctx.api.config.use(async (prev, method, payload, signal) => {
+        if (!payload) {
+          return prev(method, payload, signal);
+        }
+
+        const menusToStore: Menu<C>[] = [];
+
+        // Handle top-level reply_markup
+        if ("reply_markup" in payload && payload.reply_markup instanceof Menu) {
+          const menu = payload.reply_markup;
+          const inlineKeyboard = menu.inline_keyboard;
+          payload = {
+            ...payload,
+            text: menu.messageText,
+            reply_markup: { inline_keyboard: inlineKeyboard },
+          };
+          menusToStore.push(menu);
+        }
+
+        // Handle results array (e.g., answerInlineQuery)
+        if ("results" in payload && Array.isArray(payload.results)) {
+          payload.results = payload.results.map((result) => {
+            if (
+              result && typeof result === "object" && "reply_markup" in result && result.reply_markup instanceof Menu
+            ) {
+              const menu = result.reply_markup;
+              const inlineKeyboard = menu.inline_keyboard;
+              menusToStore.push(menu);
+              return {
+                ...result,
+                message_text: menu.messageText,
+                reply_markup: { inline_keyboard: inlineKeyboard },
+              };
+            }
+            return result;
+          });
+        }
+
+        if (menusToStore.length === 0) {
+          return prev(method, payload, signal);
+        }
+
+        const response = await prev(method, payload, signal);
+        if (!response.ok) {
+          return response;
+        }
+        const result = response.result;
+        const timestamp = Date.now();
+
+        // Now that we have sent out the menus, we should store them in menuStorage
+        for (const menu of menusToStore) {
+          const key = renderedMenuStorageKey(this.storageKeyPrefix, menu.renderedMenuId);
+          await this.menuStorage.write(key, { timestamp, templateMenuId: menu.templateMenuId });
+          this.renderedMenus.set(menu.renderedMenuId, menu);
+        }
+
+        // Navigation implies sending/editing only 1 menu
+        if (menusToStore.length !== 1) {
+          return response;
+        }
+        const menu = menusToStore[0];
+
+        // Determine navKeyId based on response to store to navigationStorage, if able
+        let navKeyId: string | undefined;
+        if (isMessage(result)) {
+          navKeyId = regularNavStorageKey(this.storageKeyPrefix, result.chat.id, result.message_id);
+        }
+        if (result === true && "inline_message_id" in payload && !!payload.inline_message_id) {
+          navKeyId = inlineNavStorageKey(this.storageKeyPrefix, payload.inline_message_id);
+        }
+
+        // Store new navigation history entry, if it is a navigation
+        if (navKeyId) {
+          const navigationStorageData = await this.navigationStorage.read(navKeyId) ??
+            MenuRegistry.createEmptyNavigationHistory();
+          const navHistory = navigationStorageData.navigationHistory;
+          if (navHistory.length > 0 && navHistory[navHistory.length - 1].renderedMenuId !== menu.renderedMenuId) {
+            const menuNavigationHistoryRecord: MenuNavigationHistoryRecord = {
+              timestamp,
+              renderedMenuId: menu.renderedMenuId,
+              templateMenuId: menu.templateMenuId,
+            };
+            navHistory.push(menuNavigationHistoryRecord);
+            await this.navigationStorage.write(navKeyId, navigationStorageData);
+          }
+        }
+
+        return response;
+      });
+      await next();
+    };
+  }
+
+  /**
+   * Creates the callback query handler for menu button interactions.
+   * Handles callback_data belonging to rendered Menus and provides the appropriate button handler.
+   */
+  private createCallbackQueryHandler(): (ctx: C & { callbackQuery: { data: string } }) => Promise<MiddlewareFn<C>> {
+    return async (ctx): Promise<MiddlewareFn<C>> => {
+      const callbackData = ctx.callbackQuery.data;
+      const [renderedMenuId, rowString, colString] = callbackData.split(":");
+
+      // Extract message identifiers for navigation history lookup
+      let navKeyId: string | undefined;
+      if ("message" in ctx.callbackQuery && ctx.callbackQuery.message) {
+        const message = ctx.callbackQuery.message;
+        navKeyId = regularNavStorageKey(this.storageKeyPrefix, message.chat.id, message.message_id);
+      } else if ("inline_message_id" in ctx.callbackQuery && ctx.callbackQuery.inline_message_id) {
+        navKeyId = inlineNavStorageKey(this.storageKeyPrefix, ctx.callbackQuery.inline_message_id);
+      }
+      if (!navKeyId) {
+        return (_ctx, next) => next();
+      }
+
+      // Verify this menu is still active by checking navigation history
+      const navigationData = await this.navigationStorage.read(navKeyId);
+      if (navigationData && navigationData.navigationHistory.length > 0) {
+        const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
+        if (activeMenu.renderedMenuId !== renderedMenuId) {
+          console.warn(
+            `Callback query for rendered menu ${renderedMenuId} for navigationStorage key ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
+          );
+          return (_ctx, next) => next();
+        }
+      }
+
+      // Check stored rendered menu information if not yet available
+      let renderedMenu = this.renderedMenus.get(renderedMenuId);
+      if (!renderedMenu) {
+        if (!this.menuStorage) {
+          // If no rendered menu found, and no storage to check, probably callback_data has nothing to do with us
+          return (_ctx, next) => next();
+        }
+        const renderedMenuData = await this.menuStorage.read(
+          renderedMenuStorageKey(this.storageKeyPrefix, renderedMenuId),
+        );
+        if (!renderedMenuData) {
+          // If no rendered menu found anywhere for this candidate rendered menu id, probably nothing to do with us
+          return (_ctx, next) => next();
+        }
+
+        const templateMenuId = renderedMenuData.templateMenuId;
+        const templateMenu = this.get(templateMenuId);
+        if (!templateMenu) {
+          // If we did find a rendered menu for this, warn and pass as it may be a rare random key conflict
+          console.warn(
+            `Found template menu id of ${templateMenuId} for rendered menu id of ${renderedMenuId}, but no template menu was registered for this template menun id!`,
+          );
+          return (_ctx, next) => next();
+        }
+
+        renderedMenu = templateMenu.render(templateMenuId, renderedMenuId);
+        this.renderedMenus.set(renderedMenuId, renderedMenu);
+      }
+
+      const row = parseInt(rowString);
+      const col = parseInt(colString);
+      if (
+        !renderedMenuId || isNaN(row) || isNaN(col) || row < 0 || col < 0 ||
+        row >= renderedMenu.menuKeyboard.length || col >= renderedMenu.menuKeyboard[row].length
+      ) {
+        // If row and col makes no sense, warn and pass as maybe nothing to do with us
+        console.warn(
+          `Found rendered menu for id of ${renderedMenuId}, but unable to find correct button for row ${rowString} and col ${colString}!`,
+        );
+        return (_ctx, next) => next();
+      }
+
+      const button = renderedMenu.menuKeyboard[row][col];
+      if ("handler" in button) {
+        return async (ctx, next) => {
+          // Answer callback query for buttons relevant to us
+          await ctx.answerCallbackQuery();
+          await button.handler(ctx, next, button.payload);
+        };
+      }
+      return (_ctx, next) => next();
+    };
   }
 
   /**
