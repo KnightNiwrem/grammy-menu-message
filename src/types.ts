@@ -1,5 +1,4 @@
-import type { Context, NextFunction } from "grammy";
-import type { InlineKeyboardButton } from "grammy/types";
+import type { Context, InlineKeyboardButton, NextFunction } from "./dep.deno.ts";
 
 /**
  * Handler function for menu button callbacks.

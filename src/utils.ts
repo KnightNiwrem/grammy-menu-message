@@ -1,4 +1,4 @@
-import type { Message } from "grammy/types";
+import type { Message } from "./dep.deno.ts";
 
 /**
  * Type guard to check if an unknown value is a Telegram Message object.

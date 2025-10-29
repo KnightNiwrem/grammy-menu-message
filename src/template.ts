@@ -1,11 +1,11 @@
-import type { Context } from "grammy";
 import type {
+  Context,
   CopyTextButton,
   InlineKeyboardButton,
   LoginUrl,
   SwitchInlineQueryChosenChat,
   WebAppInfo,
-} from "grammy/types";
+} from "./dep.deno.ts";
 import { Menu } from "./menu.ts";
 import type { MenuButton, MenuButtonHandler } from "./types.ts";
 

@@ -1,5 +1,4 @@
-import type { Context } from "grammy";
-import type { InlineKeyboardButton } from "grammy/types";
+import type { Context, InlineKeyboardButton } from "./dep.deno.ts";
 import type { MenuButton } from "./types.ts";
 
 /**

@@ -1,6 +1,5 @@
-import { Composer, Context, MemorySessionStorage } from "grammy";
-import type { MiddlewareFn, StorageAdapter } from "grammy";
-import { nanoid } from "nanoid";
+import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.deno.ts";
+import type { MiddlewareFn, StorageAdapter } from "./dep.deno.ts";
 import type { MenuTemplate } from "./template.ts";
 import { Menu } from "./menu.ts";
 import type { MenuNavigationHistoryRecord, NavigationHistoryData, RenderedMenuData } from "./types.ts";
