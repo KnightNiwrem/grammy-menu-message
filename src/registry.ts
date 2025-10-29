@@ -237,6 +237,8 @@ export class MenuRegistry<C extends Context> {
         const button = renderedMenu.menuKeyboard[row][col];
         if ("handler" in button) {
           return async (ctx, next) => {
+            // Answer callback query for buttons relevant to us
+            await ctx.answerCallbackQuery();
             await button.handler(ctx, next, button.payload);
           };
         }
