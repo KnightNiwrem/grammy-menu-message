@@ -75,8 +75,7 @@ export class MenuRegistry<C extends Context> {
           return prev(method, payload, signal);
         }
 
-        const menusToStore: Array<{ menu: Menu<C>; navKeyId?: string }> = [];
-        const timestamp = Date.now();
+        const menusToStore: Menu<C>[] = [];
 
         // Handle top-level reply_markup
         if ("reply_markup" in payload && payload.reply_markup instanceof Menu) {
@@ -86,7 +85,7 @@ export class MenuRegistry<C extends Context> {
             ...payload,
             reply_markup: { inline_keyboard: inlineKeyboard },
           };
-          menusToStore.push({ menu });
+          menusToStore.push(menu);
         }
 
         // Handle results array (e.g., answerInlineQuery)
@@ -97,7 +96,7 @@ export class MenuRegistry<C extends Context> {
             ) {
               const menu = result.reply_markup;
               const inlineKeyboard = menu.inline_keyboard;
-              menusToStore.push({ menu });
+              menusToStore.push(menu);
               return {
                 ...result,
                 reply_markup: { inline_keyboard: inlineKeyboard },
@@ -116,8 +115,21 @@ export class MenuRegistry<C extends Context> {
           return response;
         }
         const result = response.result;
+        const timestamp = Date.now();
 
-        // Determine navKeyId based on response
+        // Now that we have sent out the menus, we should store them in menuStorage
+        for (const menu of menusToStore) {
+          await this.menuStorage.write(menu.renderedMenuId, { timestamp, templateMenuId: menu.templateMenuId });
+          this.renderedMenus.set(menu.renderedMenuId, menu);
+        }
+
+        // Navigation implies sending/editing only 1 menu
+        if (menusToStore.length !== 1) {
+          return response;
+        }
+        const menu = menusToStore[0];
+
+        // Determine navKeyId based on response to store to navigationStorge, if able
         let navKeyId: string | undefined;
         if (isMessage(result)) {
           navKeyId = `${this.storageKeyPrefix}:${MESSAGE_TYPES.REGULAR}:${result.chat.id}:${result.message_id}`;
@@ -129,22 +141,19 @@ export class MenuRegistry<C extends Context> {
           navKeyId = `${this.storageKeyPrefix}:${MESSAGE_TYPES.INLINE}:${payload.inline_message_id}`;
         }
 
-        // Store all menus
-        for (const { menu } of menusToStore) {
-          const menuKeyId = `${this.storageKeyPrefix}:menus:${menu.renderedMenuId}`;
-          await this.menuStorage.write(menuKeyId, { timestamp, templateMenuId: menu.templateMenuId });
-          this.renderedMenus.set(menu.renderedMenuId, menu);
-
-          if (navKeyId) {
-            const menuMessageData = await this.navigationStorage.read(navKeyId) ??
-              MenuRegistry.createEmptyNavigationHistory();
+        // Store new navigation history entry, if it is a navigation
+        if (navKeyId) {
+          const navigationStorageData = await this.navigationStorage.read(navKeyId) ??
+            MenuRegistry.createEmptyNavigationHistory();
+          const navHistory = navigationStorageData.navigationHistory;
+          if (navHistory.length > 0 && navHistory[navHistory.length - 1].renderedMenuId !== menu.renderedMenuId) {
             const menuNavigationHistoryRecord: MenuNavigationHistoryRecord = {
               timestamp,
               renderedMenuId: menu.renderedMenuId,
               templateMenuId: menu.templateMenuId,
             };
-            menuMessageData.navigationHistory.push(menuNavigationHistoryRecord);
-            await this.navigationStorage.write(navKeyId, menuMessageData);
+            navHistory.push(menuNavigationHistoryRecord);
+            await this.navigationStorage.write(navKeyId, navigationStorageData);
           }
         }
 
@@ -179,9 +188,8 @@ export class MenuRegistry<C extends Context> {
         if (navigationData && navigationData.navigationHistory.length > 0) {
           const activeMenu = navigationData.navigationHistory[navigationData.navigationHistory.length - 1];
           if (activeMenu.renderedMenuId !== renderedMenuId) {
-            const messageLabel = messageType === MESSAGE_TYPES.INLINE ? "inline message" : "message";
             console.warn(
-              `Callback query for rendered menu ${renderedMenuId} on ${messageLabel} ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
+              `Callback query for rendered menu ${renderedMenuId} for navigationStorage key ${navKeyId}, but active menu is ${activeMenu.renderedMenuId}. Ignoring stale callback.`,
             );
             return (_ctx, next) => next();
           }
