@@ -20,7 +20,7 @@ describe("MenuRegistry", () => {
   describe("register", () => {
     it("should register a template", () => {
       const registry = new MenuRegistry<Context>();
-      const template = new MenuTemplate<Context>();
+      const template = new MenuTemplate<Context>("Test message");
 
       registry.register("test", template);
       expect(registry.has("test")).toBe(true);
@@ -28,8 +28,8 @@ describe("MenuRegistry", () => {
 
     it("should allow registering multiple templates", () => {
       const registry = new MenuRegistry<Context>();
-      const template1 = new MenuTemplate<Context>();
-      const template2 = new MenuTemplate<Context>();
+      const template1 = new MenuTemplate<Context>("Test message");
+      const template2 = new MenuTemplate<Context>("Test message");
 
       registry.register("template1", template1);
       registry.register("template2", template2);
@@ -40,8 +40,8 @@ describe("MenuRegistry", () => {
 
     it("should allow overwriting a template", () => {
       const registry = new MenuRegistry<Context>();
-      const template1 = new MenuTemplate<Context>().cb("Button 1", async () => {});
-      const template2 = new MenuTemplate<Context>().cb("Button 2", async () => {});
+      const template1 = new MenuTemplate<Context>("Test message").cb("Button 1", async () => {});
+      const template2 = new MenuTemplate<Context>("Test message").cb("Button 2", async () => {});
 
       registry.register("test", template1);
       registry.register("test", template2);
@@ -54,7 +54,7 @@ describe("MenuRegistry", () => {
   describe("get", () => {
     it("should retrieve a registered template", () => {
       const registry = new MenuRegistry<Context>();
-      const template = new MenuTemplate<Context>();
+      const template = new MenuTemplate<Context>("Test message");
 
       registry.register("test", template);
       const retrieved = registry.get("test");
@@ -73,7 +73,7 @@ describe("MenuRegistry", () => {
   describe("has", () => {
     it("should return true for registered template", () => {
       const registry = new MenuRegistry<Context>();
-      const template = new MenuTemplate<Context>();
+      const template = new MenuTemplate<Context>("Test message");
 
       registry.register("test", template);
       expect(registry.has("test")).toBe(true);
@@ -88,7 +88,7 @@ describe("MenuRegistry", () => {
   describe("menu", () => {
     it("should render a menu from a registered template", () => {
       const registry = new MenuRegistry<Context>();
-      const template = new MenuTemplate<Context>().cb("Test", async () => {});
+      const template = new MenuTemplate<Context>("Test message").cb("Test", async () => {});
 
       registry.register("test", template);
       const menu = registry.menu("test");
@@ -100,7 +100,7 @@ describe("MenuRegistry", () => {
 
     it("should generate unique renderedMenuIds for multiple renders", () => {
       const registry = new MenuRegistry<Context>();
-      const template = new MenuTemplate<Context>().cb("Test", async () => {});
+      const template = new MenuTemplate<Context>("Test message").cb("Test", async () => {});
 
       registry.register("test", template);
       const menu1 = registry.menu("test");
@@ -138,7 +138,7 @@ describe("MenuRegistry", () => {
   describe("integration", () => {
     it("should work end-to-end with template registration and rendering", () => {
       const registry = new MenuRegistry<Context>();
-      const template = new MenuTemplate<Context>()
+      const template = new MenuTemplate<Context>("Test message")
         .cb("Option 1", async () => {})
         .cb("Option 2", async () => {})
         .row()

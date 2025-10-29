@@ -68,6 +68,7 @@ export class MenuRegistry<C extends Context> {
     // The transformer needs to do the following:
     // 1. Whichever Menu that is sent must be added to menuStorage
     // 2. Whichever Menu that is sent, must be appended to navigationStorage
+    // 3. Override the message text with the Menu's messageText
     this.composer.use(async (ctx, next) => {
       ctx.api.config.use(async (prev, method, payload, signal) => {
         if (!payload) {
@@ -82,6 +83,7 @@ export class MenuRegistry<C extends Context> {
           const inlineKeyboard = menu.inline_keyboard;
           payload = {
             ...payload,
+            text: menu.messageText,
             reply_markup: { inline_keyboard: inlineKeyboard },
           };
           menusToStore.push(menu);
@@ -98,6 +100,7 @@ export class MenuRegistry<C extends Context> {
               menusToStore.push(menu);
               return {
                 ...result,
+                message_text: menu.messageText,
                 reply_markup: { inline_keyboard: inlineKeyboard },
               };
             }

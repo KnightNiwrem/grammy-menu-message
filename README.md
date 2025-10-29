@@ -22,7 +22,7 @@ const bot = new Bot(
 );
 
 const registry = new MenuRegistry();
-const main = new MenuTemplate()
+const main = new MenuTemplate("Choose:")
   .cb(
     "Say hi",
     async (
@@ -58,26 +58,15 @@ bot.command(
   async (
     ctx,
   ) => {
-    const menu = await registry
+    const menu = registry
       .menu(
         "main",
       );
-    if (
-      !menu
-    ) {
-      return ctx
-        .reply(
-          "Menu not found",
-        );
-    }
     await ctx
       .reply(
-        "Choose:",
+        "This text will be overridden",
         {
-          reply_markup: {
-            inline_keyboard: menu
-              .inline_keyboard,
-          },
+          reply_markup: menu,
         },
       );
   },

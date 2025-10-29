@@ -23,7 +23,7 @@ type Operation<C extends Context> =
  *
  * @example
  * ```typescript
- * const template = new MenuTemplate<Context>()
+ * const template = new MenuTemplate<Context>("Choose an option:")
  *   .cb("Option 1", async (ctx) => { await ctx.answerCallbackQuery("1"); })
  *   .cb("Option 2", async (ctx) => { await ctx.answerCallbackQuery("2"); })
  *   .row()
@@ -32,6 +32,13 @@ type Operation<C extends Context> =
  */
 export class MenuTemplate<C extends Context> {
   private operations: Operation<C>[] = [];
+
+  /**
+   * Creates a new MenuTemplate instance.
+   *
+   * @param messageText The text that will be used to override sent message text payload in MenuRegistry's transformer
+   */
+  constructor(public readonly messageText: string) {}
 
   /**
    * Adds a raw callback button to the current row.
@@ -284,6 +291,6 @@ export class MenuTemplate<C extends Context> {
       menuKeyboard.push(menuRow);
     }
 
-    return new Menu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
+    return new Menu(templateMenuId, renderedMenuId, this.messageText, menuKeyboard, inlineKeyboard);
   }
 }

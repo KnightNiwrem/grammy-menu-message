@@ -15,12 +15,14 @@ export class Menu<C extends Context> {
    *
    * @param templateMenuId Unique identifier for the menu template this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
+   * @param messageText The text that will be used to override sent message text payload in MenuRegistry's transformer
    * @param menuKeyboard 2D array of button objects with full handler information for internal use
    * @param inlineKeyboard The inline keyboard button layout for Telegram API compatibility
    */
   constructor(
     public readonly templateMenuId: string,
     public readonly renderedMenuId: string,
+    public readonly messageText: string,
     public readonly menuKeyboard: MenuButton<C>[][],
     private readonly inlineKeyboard: InlineKeyboardButton[][],
   ) {}

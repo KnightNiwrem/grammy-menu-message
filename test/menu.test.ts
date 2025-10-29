@@ -8,6 +8,7 @@ import type { MenuButton } from "../src/types.ts";
 describe("Menu", () => {
   const templateMenuId = "test-template";
   const renderedMenuId = "test-rendered";
+  const messageText = "Test message";
 
   describe("constructor", () => {
     it("should create a Menu with all properties", () => {
@@ -20,10 +21,11 @@ describe("Menu", () => {
       ]];
       const inlineKeyboard = [[{ text: "Button 1", callback_data: "test:0:0" }]];
 
-      const menu = new Menu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
+      const menu = new Menu(templateMenuId, renderedMenuId, messageText, menuKeyboard, inlineKeyboard);
 
       expect(menu.templateMenuId).toBe(templateMenuId);
       expect(menu.renderedMenuId).toBe(renderedMenuId);
+      expect(menu.messageText).toBe(messageText);
       expect(menu.menuKeyboard).toBe(menuKeyboard);
     });
 
@@ -31,7 +33,7 @@ describe("Menu", () => {
       const menuKeyboard: MenuButton<Context>[][] = [];
       const inlineKeyboard: InlineKeyboardButton[][] = [];
 
-      const menu = new Menu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
+      const menu = new Menu(templateMenuId, renderedMenuId, messageText, menuKeyboard, inlineKeyboard);
 
       // TypeScript should prevent reassignment, but verify properties exist
       expect(menu.templateMenuId).toBeDefined();
@@ -55,14 +57,14 @@ describe("Menu", () => {
         { text: "Button 2", url: "https://example.com" },
       ]];
 
-      const menu = new Menu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
+      const menu = new Menu(templateMenuId, renderedMenuId, messageText, menuKeyboard, inlineKeyboard);
 
       expect(menu.inline_keyboard).toBe(inlineKeyboard);
       expect(menu.inline_keyboard).toEqual(inlineKeyboard);
     });
 
     it("should return empty array for empty keyboard", () => {
-      const menu = new Menu(templateMenuId, renderedMenuId, [], []);
+      const menu = new Menu(templateMenuId, renderedMenuId, messageText, [], []);
 
       expect(menu.inline_keyboard).toEqual([]);
     });
@@ -80,7 +82,7 @@ describe("Menu", () => {
         ],
       ];
 
-      const menu = new Menu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
+      const menu = new Menu(templateMenuId, renderedMenuId, messageText, menuKeyboard, inlineKeyboard);
 
       expect(menu.inline_keyboard.length).toBe(2);
       expect(menu.inline_keyboard[0].length).toBe(1);
@@ -91,7 +93,7 @@ describe("Menu", () => {
   describe("Menu compatibility with grammY", () => {
     it("should have inline_keyboard property for reply_markup", () => {
       const inlineKeyboard = [[{ text: "Test", callback_data: "test" }]];
-      const menu = new Menu(templateMenuId, renderedMenuId, [], inlineKeyboard);
+      const menu = new Menu(templateMenuId, renderedMenuId, messageText, [], inlineKeyboard);
 
       // Should be usable as reply_markup
       const replyMarkup = { inline_keyboard: menu.inline_keyboard };
