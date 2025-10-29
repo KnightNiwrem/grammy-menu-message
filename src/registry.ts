@@ -71,56 +71,81 @@ export class MenuRegistry<C extends Context> {
     // 2. Whichever Menu that is sent, must be appended to navigationStorage
     this.composer.use(async (ctx, next) => {
       ctx.api.config.use(async (prev, method, payload, signal) => {
-        if (
-          !payload || !("reply_markup" in payload) || !payload.reply_markup
-        ) {
+        if (!payload) {
           return prev(method, payload, signal);
         }
 
-        const menu = payload.reply_markup;
-        if (!(menu instanceof Menu)) {
-          return prev(method, payload, signal);
+        const menusToStore: Array<{ menu: Menu<C>; navKeyId?: string }> = [];
+        const timestamp = Date.now();
+
+        // Handle top-level reply_markup
+        if ("reply_markup" in payload && payload.reply_markup instanceof Menu) {
+          const menu = payload.reply_markup;
+          const inlineKeyboard = menu.inline_keyboard;
+          payload = {
+            ...payload,
+            reply_markup: { inline_keyboard: inlineKeyboard },
+          };
+          menusToStore.push({ menu });
         }
 
-        const inlineKeyboard = menu.inline_keyboard;
-        payload = {
-          ...payload,
-          reply_markup: { inline_keyboard: inlineKeyboard },
-        };
+        // Handle results array (e.g., answerInlineQuery)
+        if ("results" in payload && Array.isArray(payload.results)) {
+          payload.results = payload.results.map((result) => {
+            if (
+              result && typeof result === "object" && "reply_markup" in result && result.reply_markup instanceof Menu
+            ) {
+              const menu = result.reply_markup;
+              const inlineKeyboard = menu.inline_keyboard;
+              menusToStore.push({ menu });
+              return {
+                ...result,
+                reply_markup: { inline_keyboard: inlineKeyboard },
+              };
+            }
+            return result;
+          });
+        }
+
+        if (menusToStore.length === 0) {
+          return prev(method, payload, signal);
+        }
 
         const response = await prev(method, payload, signal);
         if (!response.ok) {
           return response;
         }
         const result = response.result;
-        const timestamp = Date.now();
 
-        const menuKeyId = `${this.storageKeyPrefix}:menus:${menu.renderedMenuId}`;
-        await this.menuStorage.write(menuKeyId, { timestamp, templateMenuId: menu.templateMenuId });
-        this.renderedMenus.set(menu.renderedMenuId, menu);
-
+        // Determine navKeyId based on response
         let navKeyId: string | undefined;
-        // Message is returned for method calls on non-inline messages
         if (isMessage(result)) {
           navKeyId = `${this.storageKeyPrefix}:${MESSAGE_TYPES.REGULAR}:${result.chat.id}:${result.message_id}`;
         }
-        // True is returned for method calls on inline messages
         if (
           result === true && "inline_message_id" in payload &&
           !!payload.inline_message_id
         ) {
           navKeyId = `${this.storageKeyPrefix}:${MESSAGE_TYPES.INLINE}:${payload.inline_message_id}`;
         }
-        if (navKeyId) {
-          const menuMessageData = await this.navigationStorage.read(navKeyId) ??
-            MenuRegistry.createEmptyNavigationHistory();
-          const menuNavigationHistoryRecord: MenuNavigationHistoryRecord = {
-            timestamp,
-            renderedMenuId: menu.renderedMenuId,
-            templateMenuId: menu.templateMenuId,
-          };
-          menuMessageData.navigationHistory.push(menuNavigationHistoryRecord);
-          await this.navigationStorage.write(navKeyId, menuMessageData);
+
+        // Store all menus
+        for (const { menu } of menusToStore) {
+          const menuKeyId = `${this.storageKeyPrefix}:menus:${menu.renderedMenuId}`;
+          await this.menuStorage.write(menuKeyId, { timestamp, templateMenuId: menu.templateMenuId });
+          this.renderedMenus.set(menu.renderedMenuId, menu);
+
+          if (navKeyId) {
+            const menuMessageData = await this.navigationStorage.read(navKeyId) ??
+              MenuRegistry.createEmptyNavigationHistory();
+            const menuNavigationHistoryRecord: MenuNavigationHistoryRecord = {
+              timestamp,
+              renderedMenuId: menu.renderedMenuId,
+              templateMenuId: menu.templateMenuId,
+            };
+            menuMessageData.navigationHistory.push(menuNavigationHistoryRecord);
+            await this.navigationStorage.write(navKeyId, menuMessageData);
+          }
         }
 
         return response;
