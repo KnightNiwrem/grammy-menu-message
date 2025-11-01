@@ -5,7 +5,7 @@ import type {
   LoginUrl,
   SwitchInlineQueryChosenChat,
   WebAppInfo,
-} from "./dep.deno.ts";
+} from "./dep.ts";
 import { Menu } from "./menu.ts";
 import type { MenuButton, MenuButtonHandler } from "./types.ts";
 

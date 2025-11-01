@@ -1,4 +1,4 @@
-import type { Context, InlineKeyboardButton, NextFunction } from "./dep.deno.ts";
+import type { Context, InlineKeyboardButton, NextFunction } from "./dep.ts";
 
 /**
  * Handler function for menu button callbacks.

@@ -1,5 +1,5 @@
-import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.deno.ts";
-import type { MiddlewareFn, StorageAdapter } from "./dep.deno.ts";
+import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
+import type { MiddlewareFn, StorageAdapter } from "./dep.ts";
 import type { MenuTemplate } from "./template.ts";
 import { Menu } from "./menu.ts";
 import type { MenuNavigationHistoryRecord, NavigationHistoryData, RenderedMenuData } from "./types.ts";

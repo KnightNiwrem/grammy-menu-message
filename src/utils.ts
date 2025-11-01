@@ -1,4 +1,4 @@
-import type { InlineKeyboardButton, Message } from "./dep.deno.ts";
+import type { InlineKeyboardButton, Message } from "./dep.ts";
 
 /**
  * Type guard to check if an unknown value is a Telegram Message object.

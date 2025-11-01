@@ -1,4 +1,4 @@
-import type { Context, InlineKeyboardButton } from "./dep.deno.ts";
+import type { Context, InlineKeyboardButton } from "./dep.ts";
 import type { MenuButton } from "./types.ts";
 
 /**
