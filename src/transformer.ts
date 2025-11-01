@@ -1,6 +1,6 @@
 import type { StorageAdapter, Transformer } from "./dep.ts";
 import type { Context, RawApi } from "./dep.ts";
-import type { MenuNavigationHistoryRecord, NavigationHistoryData, RenderedMenuData } from "./types.ts";
+import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
 import { Menu } from "./menu.ts";
 import {
   createEmptyNavigationHistory,
@@ -37,7 +37,6 @@ export function createMenuRegistryTransformer<C extends Context>(
     }
 
     const menusToStore: Menu<C>[] = [];
-    let shouldTransform = false;
 
     // Handle top-level reply_markup
     if ("reply_markup" in payload && payload.reply_markup instanceof Menu) {
@@ -49,7 +48,6 @@ export function createMenuRegistryTransformer<C extends Context>(
         reply_markup: { inline_keyboard: inlineKeyboard },
       };
       menusToStore.push(menu);
-      shouldTransform = true;
     }
 
     // Handle results array (e.g., answerInlineQuery)
@@ -61,7 +59,6 @@ export function createMenuRegistryTransformer<C extends Context>(
           const menu = result.reply_markup;
           const inlineKeyboard = menu.inline_keyboard;
           menusToStore.push(menu);
-          shouldTransform = true;
           return {
             ...result,
             message_text: menu.messageText,
@@ -72,7 +69,7 @@ export function createMenuRegistryTransformer<C extends Context>(
       });
     }
 
-    if (!shouldTransform || menusToStore.length === 0) {
+    if (menusToStore.length === 0) {
       return prev(method, payload, signal);
     }
 
