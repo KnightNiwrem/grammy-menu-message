@@ -37,3 +37,34 @@ export class Menu<C extends Context> {
     return this.inlineKeyboard;
   }
 }
+
+/**
+ * Type guard function to check if a value is a Menu instance.
+ * Useful for type narrowing when handling mixed types that might contain menus.
+ *
+ * @param value The value to check
+ * @returns True if the value is a Menu instance, false otherwise
+ *
+ * @example
+ * ```ts
+ * function processInput(input: unknown) {
+ *   if (isMenu(input)) {
+ *     console.log(input.templateMenuId); // TypeScript knows this is safe
+ *   }
+ * }
+ * ```
+ */
+export function isMenu<C extends Context>(value: unknown): value is Menu<C> {
+  if (value === null || typeof value !== "object") {
+    return false;
+  }
+
+  const obj = value as Record<string, unknown>;
+  return (
+    typeof obj.templateMenuId === "string" &&
+    typeof obj.renderedMenuId === "string" &&
+    typeof obj.messageText === "string" &&
+    Array.isArray(obj.menuKeyboard) &&
+    Array.isArray(obj.inline_keyboard)
+  );
+}
