@@ -41,7 +41,7 @@
 1. Inspect the nearest `AGENTS.md` plus task instructions before editing.
 2. Plan edits, prefer small diffs scoped to the feature/fix.
 3. Update or add BDD-style tests alongside behavior changes; ensure failures reproduce the issue before fixes.
-4. Run `deno fmt`, `deno lint`, and the relevant `deno test` subset; attach output in PR descriptions.
+4. **Before committing and pushing: Run `deno task ok` to validate formatting, linting, tests, and type checking**.
 5. For remote dependency updates, capture changelog links and justify in the PR.
 
 ## Architecture & Conventions

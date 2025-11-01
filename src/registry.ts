@@ -107,7 +107,7 @@ export class MenuRegistry<C extends Context> {
           }
         }
 
-        // Check stored rendered menu information 
+        // Check stored rendered menu information
         const renderedMenuData = await this.menuStorage.read(
           renderedMenuStorageKey(this.storageKeyPrefix, renderedMenuId),
         );
