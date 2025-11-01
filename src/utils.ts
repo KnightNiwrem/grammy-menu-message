@@ -1,3 +1,5 @@
+import type { NavigationHistoryData } from "./types.ts";
+
 export const MESSAGE_TYPES = {
   REGULAR: "regular",
   INLINE: "inline",
@@ -38,4 +40,13 @@ export function regularNavStorageKey(prefix: string, chatId: number, messageId: 
  */
 export function inlineNavStorageKey(prefix: string, inlineMessageId: string): string {
   return `${prefix}:${MESSAGE_TYPES.INLINE}:${inlineMessageId}`;
+}
+
+/**
+ * Creates an empty navigation history data structure.
+ *
+ * @returns A new NavigationHistoryData object with an empty navigation history array
+ */
+export function createEmptyNavigationHistory(): NavigationHistoryData {
+  return { navigationHistory: [] };
 }

@@ -5,7 +5,12 @@ import type { MenuNavigationHistoryRecord, NavigationHistoryData, RenderedMenuDa
 import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
 import { Menu } from "./menu.ts";
 import { isMessage } from "./typeguards/message.ts";
-import { inlineNavStorageKey, regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
+import {
+  createEmptyNavigationHistory,
+  inlineNavStorageKey,
+  regularNavStorageKey,
+  renderedMenuStorageKey,
+} from "./utils.ts";
 
 /**
  * MenuRegistry manages registered menu templates and their rendered instances.
@@ -146,7 +151,7 @@ export class MenuRegistry<C extends Context> {
         // Store new navigation history entry, if it is a navigation
         if (navKeyId) {
           const navigationStorageData = await this.navigationStorage.read(navKeyId) ??
-            MenuRegistry.createEmptyNavigationHistory();
+            createEmptyNavigationHistory();
           const navHistory = navigationStorageData.navigationHistory;
           if (navHistory.length > 0 && navHistory[navHistory.length - 1].renderedMenuId !== menu.renderedMenuId) {
             const menuNavigationHistoryRecord: MenuNavigationHistoryRecord = {
@@ -344,14 +349,5 @@ export class MenuRegistry<C extends Context> {
    */
   middleware(): MiddlewareFn<C> {
     return this.composer.middleware();
-  }
-
-  /**
-   * Creates an empty navigation history data structure.
-   *
-   * @returns A new NavigationHistoryData object with an empty navigation history array
-   */
-  private static createEmptyNavigationHistory(): NavigationHistoryData {
-    return { navigationHistory: [] };
   }
 }
