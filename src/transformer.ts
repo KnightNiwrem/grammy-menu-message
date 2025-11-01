@@ -16,7 +16,12 @@ import { isMessage } from "./typeguards/message.ts";
  *
  * This transformer:
  * 1. Stores Menu instances in menuStorage
+ * 1.1. If answering an inline query, we store all menus
+ * 1.2. If sending menu via any other methods (e.g. sendMessage, editMessageText), we only store menu if `await prev` succeeds
  * 2. Stores navigation history in navigationStorage
+ * 2.1. If navigation history does not exist, it implies the menu was sent via answering an inline query, so we set the history
+ * to contain both the answered menu as well as any new menu in the current `await prev` call.
+ * 2.2 If navigation history does exist, then we only push to navigation history if the menu sent is different from the latest menu in history
  * 3. Overrides message text with the Menu's messageText
  *
  * @template C The grammY Context type
