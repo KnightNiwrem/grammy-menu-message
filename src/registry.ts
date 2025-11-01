@@ -28,7 +28,6 @@ import { createMenuRegistryTransformer } from "./transformer.ts";
  */
 export class MenuRegistry<C extends Context> {
   private templates: Map<string, MenuTemplate<C>> = new Map();
-  private renderedMenus: Map<string, Menu<C>> = new Map();
 
   private composer: Composer<C>;
 
@@ -73,7 +72,6 @@ export class MenuRegistry<C extends Context> {
         this.storageKeyPrefix,
         this.menuStorage,
         this.navigationStorage,
-        this.renderedMenus,
       );
       ctx.api.config.use(transformer);
       await next();
@@ -109,34 +107,26 @@ export class MenuRegistry<C extends Context> {
           }
         }
 
-        // Check stored rendered menu information if not yet available
-        let renderedMenu = this.renderedMenus.get(renderedMenuId);
-        if (!renderedMenu) {
-          if (!this.menuStorage) {
-            // If no rendered menu found, and no storage to check, probably callback_data has nothing to do with us
-            return (_ctx, next) => next();
-          }
-          const renderedMenuData = await this.menuStorage.read(
-            renderedMenuStorageKey(this.storageKeyPrefix, renderedMenuId),
-          );
-          if (!renderedMenuData) {
-            // If no rendered menu found anywhere for this candidate rendered menu id, probably nothing to do with us
-            return (_ctx, next) => next();
-          }
-
-          const templateMenuId = renderedMenuData.templateMenuId;
-          const templateMenu = this.get(templateMenuId);
-          if (!templateMenu) {
-            // If we did find a rendered menu for this, warn and pass as it may be a rare random key conflict
-            console.warn(
-              `Found template menu id of ${templateMenuId} for rendered menu id of ${renderedMenuId}, but no template menu was registered for this template menun id!`,
-            );
-            return (_ctx, next) => next();
-          }
-
-          renderedMenu = templateMenu.render(templateMenuId, renderedMenuId);
-          this.renderedMenus.set(renderedMenuId, renderedMenu);
+        // Check stored rendered menu information 
+        const renderedMenuData = await this.menuStorage.read(
+          renderedMenuStorageKey(this.storageKeyPrefix, renderedMenuId),
+        );
+        if (!renderedMenuData) {
+          // If no rendered menu found anywhere for this candidate rendered menu id, probably nothing to do with us
+          return (_ctx, next) => next();
         }
+
+        const templateMenuId = renderedMenuData.templateMenuId;
+        const templateMenu = this.get(templateMenuId);
+        if (!templateMenu) {
+          // If we did find a rendered menu for this, warn and pass as it may be a rare random key conflict
+          console.warn(
+            `Found template menu id of ${templateMenuId} for rendered menu id of ${renderedMenuId}, but no template menu was registered for this template menun id!`,
+          );
+          return (_ctx, next) => next();
+        }
+
+        const renderedMenu = templateMenu.render(templateMenuId, renderedMenuId);
 
         const row = parseInt(rowString);
         const col = parseInt(colString);
@@ -240,7 +230,6 @@ export class MenuRegistry<C extends Context> {
 
     const renderedMenuId = nanoid();
     const renderedMenu = template.render(templateMenuId, renderedMenuId);
-    this.renderedMenus.set(renderedMenuId, renderedMenu);
     return renderedMenu;
   }
 

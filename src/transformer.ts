@@ -29,7 +29,6 @@ export function createMenuRegistryTransformer<C extends Context>(
   storageKeyPrefix: string,
   menuStorage: StorageAdapter<RenderedMenuData>,
   navigationStorage: StorageAdapter<NavigationHistoryData>,
-  renderedMenus?: Map<string, Menu<C>>,
 ): Transformer<RawApi> {
   return async (prev, method, payload, signal) => {
     if (!payload) {
@@ -84,9 +83,6 @@ export function createMenuRegistryTransformer<C extends Context>(
     for (const menu of menusToStore) {
       const key = renderedMenuStorageKey(storageKeyPrefix, menu.renderedMenuId);
       await menuStorage.write(key, { timestamp, templateMenuId: menu.templateMenuId });
-      if (renderedMenus) {
-        renderedMenus.set(menu.renderedMenuId, menu);
-      }
     }
 
     // Navigation implies sending/editing only 1 menu
