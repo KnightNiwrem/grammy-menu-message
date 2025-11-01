@@ -1,10 +1,5 @@
 import type { NavigationHistoryData } from "./types.ts";
 
-export const MESSAGE_TYPES = {
-  REGULAR: "regular",
-  INLINE: "inline",
-} as const;
-
 /**
  * Constructs the storage key for a rendered menu.
  * Storage key format: `${keyPrefix}:menus:${renderedMenuId}`
@@ -27,19 +22,7 @@ export function renderedMenuStorageKey(prefix: string, renderedMenuId: string): 
  * @returns The constructed storage key
  */
 export function regularNavStorageKey(prefix: string, chatId: number, messageId: number): string {
-  return `${prefix}:${MESSAGE_TYPES.REGULAR}:${chatId}:${messageId}`;
-}
-
-/**
- * Constructs the navigation history storage key for an inline message.
- * Storage key format: `${keyPrefix}:inline:${inlineMessageId}`
- *
- * @param prefix The storage key prefix
- * @param inlineMessageId The inline message ID from Telegram
- * @returns The constructed storage key
- */
-export function inlineNavStorageKey(prefix: string, inlineMessageId: string): string {
-  return `${prefix}:${MESSAGE_TYPES.INLINE}:${inlineMessageId}`;
+  return `${prefix}:regular:${chatId}:${messageId}`;
 }
 
 /**

@@ -4,7 +4,7 @@ import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
 
 import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
 import { Menu } from "./menu.ts";
-import { inlineNavStorageKey, regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
+import { regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
 import { createMenuRegistryTransformer } from "./transformer.ts";
 
 /**
@@ -88,8 +88,6 @@ export class MenuRegistry<C extends Context> {
         if ("message" in ctx.callbackQuery && ctx.callbackQuery.message) {
           const message = ctx.callbackQuery.message;
           navKeyId = regularNavStorageKey(this.storageKeyPrefix, message.chat.id, message.message_id);
-        } else if ("inline_message_id" in ctx.callbackQuery && ctx.callbackQuery.inline_message_id) {
-          navKeyId = inlineNavStorageKey(this.storageKeyPrefix, ctx.callbackQuery.inline_message_id);
         }
         if (!navKeyId) {
           return (_ctx, next) => next();

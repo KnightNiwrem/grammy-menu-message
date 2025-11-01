@@ -61,9 +61,7 @@ export interface MenuNavigationHistoryRecord {
  * Per-message data stored for menu messages.
  * Maintains the complete navigation history for a single message entity.
  *
- * Storage key format:
- * - Regular messages: `${keyPrefix}:regular:${chatId}:${messageId}`
- * - Inline messages: `${keyPrefix}:inline:${inlineMessageId}`
+ * Storage key format: `${keyPrefix}:regular:${chatId}:${messageId}`
  */
 export interface NavigationHistoryData {
   /** Ordered array of navigation records, oldest first */
