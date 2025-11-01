@@ -6,8 +6,9 @@ import type {
   SwitchInlineQueryChosenChat,
   WebAppInfo,
 } from "./dep.ts";
-import { Menu } from "./menu.ts";
 import type { MenuButton, MenuButtonHandler } from "./types.ts";
+
+import { Menu } from "./menu.ts";
 
 type Operation<C extends Context> =
   | { type: "nativeButton"; data: InlineKeyboardButton }

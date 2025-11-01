@@ -1,7 +1,8 @@
-import { Context, describe, expect, it } from "./deps.ts";
 import type { InlineKeyboardButton } from "./deps.ts";
-import { isMenu, Menu } from "../src/menu.ts";
 import type { MenuButton } from "../src/types.ts";
+
+import { Context, describe, expect, it } from "./deps.ts";
+import { isMenu, Menu } from "../src/menu.ts";
 
 describe("Menu", () => {
   const templateMenuId = "test-template";
@@ -148,7 +149,7 @@ describe("Menu", () => {
         renderedMenuId: "test-rendered",
         messageText: "Test message",
         menuKeyboard: [],
-        inline_keyboard: [],
+        inline_keyboard: [[{ text: "text", "callback_data": "data" }]],
       };
       expect(isMenu(menuLike)).toBe(true);
     });

@@ -1,6 +1,8 @@
 import type { Context, InlineKeyboardButton } from "./dep.ts";
 import type { MenuButton } from "./types.ts";
 
+import { isInlineKeyboard } from "./typeguards/inline-keyboard.ts";
+
 /**
  * Menu represents a rendered menu with an inline keyboard and associated callback handlers.
  * Each Menu instance is immutable and tracks its template origin and unique render ID.
@@ -65,6 +67,6 @@ export function isMenu<C extends Context>(value: unknown): value is Menu<C> {
     typeof obj.renderedMenuId === "string" &&
     typeof obj.messageText === "string" &&
     Array.isArray(obj.menuKeyboard) &&
-    Array.isArray(obj.inline_keyboard)
+    isInlineKeyboard(obj.inline_keyboard)
   );
 }
