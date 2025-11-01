@@ -1,7 +1,5 @@
-import { describe, it } from "@std/testing/bdd";
-import { expect } from "@std/expect";
-import { Context } from "grammy";
-import type { InlineKeyboardButton } from "grammy/types";
+import { Context, describe, expect, it } from "./deps.ts";
+import type { InlineKeyboardButton } from "./deps.ts";
 import { isMenu, Menu } from "../src/menu.ts";
 import type { MenuButton } from "../src/types.ts";
 

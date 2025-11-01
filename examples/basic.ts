@@ -1,7 +1,7 @@
 /**
  * Example bot demonstrating the grammY Menu Message plugin.
  */
-import { Bot } from "grammy";
+import { Bot } from "https://lib.deno.dev/x/grammy@v1/mod.ts";
 import { MenuRegistry, MenuTemplate } from "../src/mod.ts";
 
 const token = Deno.env

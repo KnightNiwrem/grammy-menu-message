@@ -1,6 +1,4 @@
-import { describe, it } from "@std/testing/bdd";
-import { expect } from "@std/expect";
-import { Context } from "grammy";
+import { Context, describe, expect, it } from "./deps.ts";
 import { MenuTemplate } from "../src/template.ts";
 
 describe("MenuTemplate", () => {

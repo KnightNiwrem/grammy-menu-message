@@ -1,6 +1,4 @@
-import { describe, it } from "@std/testing/bdd";
-import { expect } from "@std/expect";
-import { Bot, Context } from "grammy";
+import { Bot, Context, describe, expect, it } from "./deps.ts";
 import { MenuRegistry } from "../src/registry.ts";
 import { MenuTemplate } from "../src/template.ts";
 
