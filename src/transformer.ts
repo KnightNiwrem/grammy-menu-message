@@ -110,7 +110,20 @@ export function createMenuRegistryTransformer<C extends Context>(
       const navigationStorageData = await navigationStorage.read(navKeyId) ??
         createEmptyNavigationHistory();
       const navHistory = navigationStorageData.navigationHistory;
-      if (navHistory.length > 0 && navHistory[navHistory.length - 1].renderedMenuId !== menu.renderedMenuId) {
+
+      // If navigation history does not exist (empty), it implies the menu was sent via answering
+      // an inline query, so we set the history to contain the current menu (section 2.1)
+      if (navHistory.length === 0) {
+        const menuNavigationHistoryRecord = {
+          timestamp,
+          renderedMenuId: menu.renderedMenuId,
+          templateMenuId: menu.templateMenuId,
+        };
+        navHistory.push(menuNavigationHistoryRecord);
+        await navigationStorage.write(navKeyId, navigationStorageData);
+      } // If navigation history does exist, then we only push to navigation history if the
+      // menu sent is different from the latest menu in history (section 2.2)
+      else if (navHistory[navHistory.length - 1].renderedMenuId !== menu.renderedMenuId) {
         const menuNavigationHistoryRecord = {
           timestamp,
           renderedMenuId: menu.renderedMenuId,
