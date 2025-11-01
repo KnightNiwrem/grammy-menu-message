@@ -4,11 +4,7 @@ import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
 
 import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
 import { Menu } from "./menu.ts";
-import {
-  inlineNavStorageKey,
-  regularNavStorageKey,
-  renderedMenuStorageKey,
-} from "./utils.ts";
+import { inlineNavStorageKey, regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
 import { createMenuRegistryTransformer } from "./transformer.ts";
 
 /**
