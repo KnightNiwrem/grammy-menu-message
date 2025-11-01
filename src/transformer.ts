@@ -1,5 +1,5 @@
 import type { StorageAdapter, Transformer } from "./dep.ts";
-import type { Context, RawApi } from "./dep.ts";
+import type { Context } from "./dep.ts";
 import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
 import { Menu } from "./menu.ts";
 import {
@@ -29,7 +29,7 @@ export function createMenuRegistryTransformer<C extends Context>(
   storageKeyPrefix: string,
   menuStorage: StorageAdapter<RenderedMenuData>,
   navigationStorage: StorageAdapter<NavigationHistoryData>,
-): Transformer<RawApi> {
+): Transformer {
   return async (prev, method, payload, signal) => {
     if (!payload) {
       return prev(method, payload, signal);
