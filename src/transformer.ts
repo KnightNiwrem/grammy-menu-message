@@ -1,7 +1,7 @@
 import type { StorageAdapter, Transformer } from "./dep.ts";
 import type { Context } from "./dep.ts";
 import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
-import { Menu } from "./menu.ts";
+import { isMenu, Menu } from "./menu.ts";
 import {
   createEmptyNavigationHistory,
   inlineNavStorageKey,
@@ -43,7 +43,7 @@ export function createMenuRegistryTransformer<C extends Context>(
     const menusToStore: Menu<C>[] = [];
 
     // Handle top-level reply_markup
-    if ("reply_markup" in payload && payload.reply_markup instanceof Menu) {
+    if ("reply_markup" in payload && isMenu(payload.reply_markup)) {
       const menu = payload.reply_markup;
       const inlineKeyboard = menu.inline_keyboard;
       payload = {
@@ -58,7 +58,7 @@ export function createMenuRegistryTransformer<C extends Context>(
     if ("results" in payload && Array.isArray(payload.results)) {
       payload.results = payload.results.map((result) => {
         if (
-          result && typeof result === "object" && "reply_markup" in result && result.reply_markup instanceof Menu
+          result && typeof result === "object" && "reply_markup" in result && isMenu(result.reply_markup)
         ) {
           const menu = result.reply_markup;
           const inlineKeyboard = menu.inline_keyboard;
