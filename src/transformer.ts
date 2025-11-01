@@ -2,12 +2,7 @@ import type { StorageAdapter, Transformer } from "./dep.ts";
 import type { Context } from "./dep.ts";
 import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
 import { isMenu, Menu } from "./menu.ts";
-import {
-  createEmptyNavigationHistory,
-  inlineNavStorageKey,
-  regularNavStorageKey,
-  renderedMenuStorageKey,
-} from "./utils.ts";
+import { createEmptyNavigationHistory, regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
 import { isMessage } from "./typeguards/message.ts";
 
 /**
@@ -16,12 +11,9 @@ import { isMessage } from "./typeguards/message.ts";
  *
  * This transformer:
  * 1. Stores Menu instances in menuStorage
- * 1.1. If answering an inline query, we store all menus
- * 1.2. If sending menu via any other methods (e.g. sendMessage, editMessageText), we only store menu if `await prev` succeeds
  * 2. Stores navigation history in navigationStorage
- * 2.1. If navigation history does not exist, it implies the menu was sent via answering an inline query, so we set the history
- * to contain both the answered menu as well as any new menu in the current `await prev` call.
- * 2.2 If navigation history does exist, then we only push to navigation history if the menu sent is different from the latest menu in history
+ * 2.1. If navigation history does not exist, it creates new history with the current menu
+ * 2.2. If navigation history does exist, then we only push to navigation history if the menu sent is different from the latest menu in history
  * 3. Overrides message text with the Menu's messageText
  *
  * @template C The grammY Context type
@@ -54,25 +46,6 @@ export function createMenuRegistryTransformer<C extends Context>(
       menusToStore.push(menu);
     }
 
-    // Handle results array (e.g., answerInlineQuery)
-    if ("results" in payload && Array.isArray(payload.results)) {
-      payload.results = payload.results.map((result) => {
-        if (
-          result && typeof result === "object" && "reply_markup" in result && isMenu(result.reply_markup)
-        ) {
-          const menu = result.reply_markup;
-          const inlineKeyboard = menu.inline_keyboard;
-          menusToStore.push(menu);
-          return {
-            ...result,
-            message_text: menu.messageText,
-            reply_markup: { inline_keyboard: inlineKeyboard },
-          };
-        }
-        return result;
-      });
-    }
-
     if (menusToStore.length === 0) {
       return prev(method, payload, signal);
     }
@@ -100,9 +73,6 @@ export function createMenuRegistryTransformer<C extends Context>(
     let navKeyId: string | undefined;
     if (isMessage(result)) {
       navKeyId = regularNavStorageKey(storageKeyPrefix, result.chat.id, result.message_id);
-    }
-    if (result === true && "inline_message_id" in payload && !!payload.inline_message_id) {
-      navKeyId = inlineNavStorageKey(storageKeyPrefix, payload.inline_message_id);
     }
 
     // Store new navigation history entry, if it is a navigation
