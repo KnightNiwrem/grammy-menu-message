@@ -1,9 +1,11 @@
-import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
 import type { MiddlewareFn, StorageAdapter } from "./dep.ts";
 import type { MenuTemplate } from "./template.ts";
-import { Menu } from "./menu.ts";
 import type { MenuNavigationHistoryRecord, NavigationHistoryData, RenderedMenuData } from "./types.ts";
-import { inlineNavStorageKey, isMessage, regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
+
+import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
+import { Menu } from "./menu.ts";
+import { isMessage } from "./typeguards/message.ts";
+import { inlineNavStorageKey, regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
 
 /**
  * MenuRegistry manages registered menu templates and their rendered instances.

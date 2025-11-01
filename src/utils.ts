@@ -1,27 +1,4 @@
-import type { InlineKeyboardButton, Message } from "./dep.ts";
-
-/**
- * Type guard to check if an unknown value is a Telegram Message object.
- * Only tests non-exhaustively for the properties required by this library.
- *
- * @param value The value to check
- * @returns true if the candidate is a Message with required properties, false otherwise
- */
-export function isMessage(value: unknown): value is Message {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-  if (!("message_id" in value) || typeof value.message_id !== "number") {
-    return false;
-  }
-  if (!("chat" in value) || typeof value.chat !== "object" || !value.chat) {
-    return false;
-  }
-  if (!("id" in value.chat) || typeof value.chat.id !== "number") {
-    return false;
-  }
-  return true;
-}
+import type { InlineKeyboardButton } from "./dep.ts";
 
 export const MESSAGE_TYPES = {
   REGULAR: "regular",
@@ -63,26 +40,6 @@ export function regularNavStorageKey(prefix: string, chatId: number, messageId: 
  */
 export function inlineNavStorageKey(prefix: string, inlineMessageId: string): string {
   return `${prefix}:${MESSAGE_TYPES.INLINE}:${inlineMessageId}`;
-}
-
-/**
- * Type guard to check if an unknown value is an InlineKeyboardButton.
- * Tests for the common properties present in all button types.
- *
- * @param value The value to check
- * @returns true if the value is a valid InlineKeyboardButton, false otherwise
- */
-export function isInlineKeyboardButton(value: unknown): value is InlineKeyboardButton {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  // All InlineKeyboardButton types have a text property
-  if (!("text" in value) || typeof value.text !== "string") {
-    return false;
-  }
-
-  return true;
 }
 
 /**

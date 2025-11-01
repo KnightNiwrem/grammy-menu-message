@@ -1,11 +1,11 @@
 import { describe, expect, it } from "./deps.ts";
+import { isInlineKeyboardButton } from "../src/typeguards/inline-keyboard-button.ts";
+import { isMessage } from "../src/typeguards/message.ts";
 import {
   isCallbackButton,
   isCopyTextButton,
   isGameButton,
-  isInlineKeyboardButton,
   isLoginButton,
-  isMessage,
   isPayButton,
   isSwitchInlineButton,
   isSwitchInlineChosenChatButton,
