@@ -1,18 +1,16 @@
 import { describe, expect, it } from "./deps.ts";
 import { isInlineKeyboardButton } from "../src/typeguards/inline-keyboard-button.ts";
+import { isCallbackButton } from "../src/typeguards/callback-button.ts";
+import { isCopyTextButton } from "../src/typeguards/copy-text-button.ts";
+import { isGameButton } from "../src/typeguards/game-button.ts";
+import { isLoginButton } from "../src/typeguards/login-button.ts";
+import { isPayButton } from "../src/typeguards/pay-button.ts";
+import { isSwitchInlineButton } from "../src/typeguards/switch-inline-button.ts";
+import { isSwitchInlineChosenChatButton } from "../src/typeguards/switch-inline-chosen-chat-button.ts";
+import { isSwitchInlineCurrentChatButton } from "../src/typeguards/switch-inline-current-chat-button.ts";
+import { isUrlButton } from "../src/typeguards/url-button.ts";
+import { isWebAppButton } from "../src/typeguards/web-app-button.ts";
 import { isMessage } from "../src/typeguards/message.ts";
-import {
-  isCallbackButton,
-  isCopyTextButton,
-  isGameButton,
-  isLoginButton,
-  isPayButton,
-  isSwitchInlineButton,
-  isSwitchInlineChosenChatButton,
-  isSwitchInlineCurrentChatButton,
-  isUrlButton,
-  isWebAppButton,
-} from "../src/utils.ts";
 
 describe("utils", () => {
   describe("isMessage", () => {
