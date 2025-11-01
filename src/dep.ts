@@ -1,4 +1,10 @@
-export type { MiddlewareFn, NextFunction, StorageAdapter } from "https://lib.deno.dev/x/grammy@v1/mod.ts";
+export type {
+  MiddlewareFn,
+  NextFunction,
+  RawApi,
+  StorageAdapter,
+  Transformer,
+} from "https://lib.deno.dev/x/grammy@v1/mod.ts";
 export type {
   CopyTextButton,
   InlineKeyboardButton,

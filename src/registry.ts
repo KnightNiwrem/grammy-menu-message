@@ -1,16 +1,15 @@
 import type { MiddlewareFn, StorageAdapter } from "./dep.ts";
 import type { MenuTemplate } from "./template.ts";
-import type { MenuNavigationHistoryRecord, NavigationHistoryData, RenderedMenuData } from "./types.ts";
+import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
 
 import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
 import { Menu } from "./menu.ts";
-import { isMessage } from "./typeguards/message.ts";
 import {
-  createEmptyNavigationHistory,
   inlineNavStorageKey,
   regularNavStorageKey,
   renderedMenuStorageKey,
 } from "./utils.ts";
+import { createMenuRegistryTransformer } from "./transformer.ts";
 
 /**
  * MenuRegistry manages registered menu templates and their rendered instances.
@@ -72,100 +71,15 @@ export class MenuRegistry<C extends Context> {
     this.navigationStorage = options?.navigationStorage ?? new MemorySessionStorage<NavigationHistoryData>();
 
     this.composer = new Composer<C>();
-    // The transformer needs to do the following:
-    // 1. Whichever Menu that is sent must be added to menuStorage
-    // 2. Whichever Menu that is sent, must be appended to navigationStorage
-    // 3. Override the message text with the Menu's messageText
+    // Install the transformer function to handle Menu objects in API calls
     this.composer.use(async (ctx, next) => {
-      ctx.api.config.use(async (prev, method, payload, signal) => {
-        if (!payload) {
-          return prev(method, payload, signal);
-        }
-
-        const menusToStore: Menu<C>[] = [];
-
-        // Handle top-level reply_markup
-        if ("reply_markup" in payload && payload.reply_markup instanceof Menu) {
-          const menu = payload.reply_markup;
-          const inlineKeyboard = menu.inline_keyboard;
-          payload = {
-            ...payload,
-            text: menu.messageText,
-            reply_markup: { inline_keyboard: inlineKeyboard },
-          };
-          menusToStore.push(menu);
-        }
-
-        // Handle results array (e.g., answerInlineQuery)
-        if ("results" in payload && Array.isArray(payload.results)) {
-          payload.results = payload.results.map((result) => {
-            if (
-              result && typeof result === "object" && "reply_markup" in result && result.reply_markup instanceof Menu
-            ) {
-              const menu = result.reply_markup;
-              const inlineKeyboard = menu.inline_keyboard;
-              menusToStore.push(menu);
-              return {
-                ...result,
-                message_text: menu.messageText,
-                reply_markup: { inline_keyboard: inlineKeyboard },
-              };
-            }
-            return result;
-          });
-        }
-
-        if (menusToStore.length === 0) {
-          return prev(method, payload, signal);
-        }
-
-        const response = await prev(method, payload, signal);
-        if (!response.ok) {
-          return response;
-        }
-        const result = response.result;
-        const timestamp = Date.now();
-
-        // Now that we have sent out the menus, we should store them in menuStorage
-        for (const menu of menusToStore) {
-          const key = renderedMenuStorageKey(this.storageKeyPrefix, menu.renderedMenuId);
-          await this.menuStorage.write(key, { timestamp, templateMenuId: menu.templateMenuId });
-          this.renderedMenus.set(menu.renderedMenuId, menu);
-        }
-
-        // Navigation implies sending/editing only 1 menu
-        if (menusToStore.length !== 1) {
-          return response;
-        }
-        const menu = menusToStore[0];
-
-        // Determine navKeyId based on response to store to navigationStorage, if able
-        let navKeyId: string | undefined;
-        if (isMessage(result)) {
-          navKeyId = regularNavStorageKey(this.storageKeyPrefix, result.chat.id, result.message_id);
-        }
-        if (result === true && "inline_message_id" in payload && !!payload.inline_message_id) {
-          navKeyId = inlineNavStorageKey(this.storageKeyPrefix, payload.inline_message_id);
-        }
-
-        // Store new navigation history entry, if it is a navigation
-        if (navKeyId) {
-          const navigationStorageData = await this.navigationStorage.read(navKeyId) ??
-            createEmptyNavigationHistory();
-          const navHistory = navigationStorageData.navigationHistory;
-          if (navHistory.length > 0 && navHistory[navHistory.length - 1].renderedMenuId !== menu.renderedMenuId) {
-            const menuNavigationHistoryRecord: MenuNavigationHistoryRecord = {
-              timestamp,
-              renderedMenuId: menu.renderedMenuId,
-              templateMenuId: menu.templateMenuId,
-            };
-            navHistory.push(menuNavigationHistoryRecord);
-            await this.navigationStorage.write(navKeyId, navigationStorageData);
-          }
-        }
-
-        return response;
-      });
+      const transformer = createMenuRegistryTransformer(
+        this.storageKeyPrefix,
+        this.menuStorage,
+        this.navigationStorage,
+        this.renderedMenus,
+      );
+      ctx.api.config.use(transformer);
       await next();
     });
     // The middleware need to do the following:
