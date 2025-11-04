@@ -1,6 +1,6 @@
 # Project Overview
 
-- Deno-based project with Docker support; keep human-facing docs in `README.md` and use this file for agent directives.
+- Deno-based library project; keep human-facing docs in `README.md` and use this file for agent directives.
 - Work remains agent-agnostic—assume no private credentials are available and prefer reproducible, scripted changes.
 
 ## Environment & Tooling
@@ -8,7 +8,6 @@
 - Use the Deno version pinned in `deno.json`/`.dvmrc`; if absent, default to the latest stable release and record any new pin.
 - Prefer `deno task <name>` wrappers defined in `deno.json`. When adding tasks, document them below.
 - Remote module fetches should work without certificate overrides; see "CI Certificate Handling" if a sandbox requires exceptions.
-- Leverage Docker for parity: `docker compose up --build` (or the project-specific compose command) should produce a working environment after updates.
 
 ## Core Commands
 
@@ -54,25 +53,18 @@
 
 ## Data & External Services
 
-- PostgreSQL: provision with Docker using image `postgres:17`; prefer `npm:kysely` + `npm:pg` for data access. Capture migrations in version-controlled scripts.
-- Redis: use image `redis:8`; interact via `npm:bullmq` and `npm:ioredis`.
 - Telegram bots: import `grammy` from `https://lib.deno.dev/x/grammy@v1/mod.ts`; avoid grammy sessions per project policy.
   - For grammy types, import from `https://lib.deno.dev/x/grammy@v1/types.ts` (never use `deno.land/x/grammy_types`).
   - **Composer chaining:** The `.on()` method returns a chainable Composer. Use `composer.on("filter").lazy(fn)` instead of `composer.on("filter", composer.lazy(fn))` for cleaner code.
 - Record credentials securely (never commit secrets); provide mock values for tests.
 
-## Docker & Deployment Notes
-
-- Ensure Docker builds stay reproducible; explicitly install the required Deno version in images.
-- Keep health checks and exposed ports synchronized between `Dockerfile`, `docker-compose.yml`, and docs.
-- Run containerized smoke tests (`deno test` or app-specific checks) before publishing new images.
-
 ## Git & Review Practices
 
-- Branch from `main` using descriptive names (e.g., `feature/<slug>` or `fix/<slug>`).
+- Check current branch before starting work; if on `main` or `master`, create and checkout to a new feature branch using descriptive names (e.g., `feature/<slug>` or `fix/<slug>`) unless the user explicitly asks to work on `main` or `master`.
 - Keep commits atomic with conventional prefixes (`feat:`, `fix:`, `test:`, `chore:`...).
 - Include evidence (test output, screenshots, or logs) in PRs; reject merges with failing checks.
 - Never push secrets; scan diffs for credentials before committing.
+- After making changes, commit and push to the feature branch.
 
 ## Agent Playbook
 
@@ -82,6 +74,6 @@
 
 ## Maintenance Checklist
 
-- After each significant change, rerun format/lint/tests and update Docker artifacts if relevant.
+- After each significant change, rerun format/lint/tests.
 - Archive deprecated guidance promptly (stale sections confuse automated agents).
 - Encourage contributors to reference this file in PR templates to keep agent context current.
