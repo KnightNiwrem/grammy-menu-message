@@ -2,8 +2,10 @@ export type { MiddlewareFn, NextFunction, StorageAdapter, Transformer } from "ht
 export type {
   CopyTextButton,
   InlineKeyboardButton,
+  InputFile,
   LoginUrl,
   Message,
+  MessageEntity,
   SwitchInlineQueryChosenChat,
   WebAppInfo,
 } from "https://lib.deno.dev/x/grammy@v1/types.ts";

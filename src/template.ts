@@ -2,7 +2,9 @@ import type {
   Context,
   CopyTextButton,
   InlineKeyboardButton,
+  InputFile,
   LoginUrl,
+  MessageEntity,
   SwitchInlineQueryChosenChat,
   WebAppInfo,
 } from "./dep.ts";
@@ -24,7 +26,7 @@ export interface TextOptions {
   /** Parse mode for formatting (e.g., "Markdown", "HTML") */
   parseMode?: string;
   /** Special entities like bold, italic, mentions, etc. */
-  entities?: unknown[];
+  entities?: MessageEntity[];
 }
 
 /**
@@ -33,12 +35,12 @@ export interface TextOptions {
  */
 export type MessagePayload =
   | { type: "text" } & TextOptions
-  | { type: "photo"; photo: string } & TextOptions
-  | { type: "video"; video: string } & TextOptions
-  | { type: "animation"; animation: string } & TextOptions
-  | { type: "audio"; audio: string } & TextOptions
-  | { type: "document"; document: string } & TextOptions
-  | { type: "voice"; voice: string } & TextOptions;
+  | { type: "photo"; photo: InputFile | string } & TextOptions
+  | { type: "video"; video: InputFile | string } & TextOptions
+  | { type: "animation"; animation: InputFile | string } & TextOptions
+  | { type: "audio"; audio: InputFile | string } & TextOptions
+  | { type: "document"; document: InputFile | string } & TextOptions
+  | { type: "voice"; voice: InputFile | string } & TextOptions;
 
 /**
  * BaseMenuTemplate defines the common structure and button methods for all menu templates.
@@ -360,66 +362,66 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    * Attaches a photo to this menu and returns a PhotoMenuTemplate.
    * The returned template can still have buttons added but cannot have other media attached.
    *
-   * @param photo Photo to send (file_id, HTTP URL, or file path)
+   * @param photo Photo to send (file_id, HTTP URL, or InputFile)
    * @param options Optional text options (caption, parse mode, entities)
    * @returns A PhotoMenuTemplate with the photo attached
    */
-  photo(photo: string, options?: TextOptions): PhotoMenuTemplate<C> {
+  photo(photo: InputFile | string, options?: TextOptions): PhotoMenuTemplate<C> {
     return new PhotoMenuTemplate<C>([...this.operations], photo, options);
   }
 
   /**
    * Attaches a video to this menu and returns a VideoMenuTemplate.
    *
-   * @param video Video to send (file_id, HTTP URL, or file path)
+   * @param video Video to send (file_id, HTTP URL, or InputFile)
    * @param options Optional text options (caption, parse mode, entities)
    * @returns A VideoMenuTemplate with the video attached
    */
-  video(video: string, options?: TextOptions): VideoMenuTemplate<C> {
+  video(video: InputFile | string, options?: TextOptions): VideoMenuTemplate<C> {
     return new VideoMenuTemplate<C>([...this.operations], video, options);
   }
 
   /**
    * Attaches an animation to this menu and returns an AnimationMenuTemplate.
    *
-   * @param animation Animation to send (file_id, HTTP URL, or file path)
+   * @param animation Animation to send (file_id, HTTP URL, or InputFile)
    * @param options Optional text options (caption, parse mode, entities)
    * @returns An AnimationMenuTemplate with the animation attached
    */
-  animation(animation: string, options?: TextOptions): AnimationMenuTemplate<C> {
+  animation(animation: InputFile | string, options?: TextOptions): AnimationMenuTemplate<C> {
     return new AnimationMenuTemplate<C>([...this.operations], animation, options);
   }
 
   /**
    * Attaches audio to this menu and returns an AudioMenuTemplate.
    *
-   * @param audio Audio file to send (file_id, HTTP URL, or file path)
+   * @param audio Audio file to send (file_id, HTTP URL, or InputFile)
    * @param options Optional text options (caption, parse mode, entities)
    * @returns An AudioMenuTemplate with the audio attached
    */
-  audio(audio: string, options?: TextOptions): AudioMenuTemplate<C> {
+  audio(audio: InputFile | string, options?: TextOptions): AudioMenuTemplate<C> {
     return new AudioMenuTemplate<C>([...this.operations], audio, options);
   }
 
   /**
    * Attaches a document to this menu and returns a DocumentMenuTemplate.
    *
-   * @param document Document to send (file_id, HTTP URL, or file path)
+   * @param document Document to send (file_id, HTTP URL, or InputFile)
    * @param options Optional text options (caption, parse mode, entities)
    * @returns A DocumentMenuTemplate with the document attached
    */
-  document(document: string, options?: TextOptions): DocumentMenuTemplate<C> {
+  document(document: InputFile | string, options?: TextOptions): DocumentMenuTemplate<C> {
     return new DocumentMenuTemplate<C>([...this.operations], document, options);
   }
 
   /**
    * Attaches a voice message to this menu and returns a VoiceMenuTemplate.
    *
-   * @param voice Voice message to send (file_id, HTTP URL, or file path)
+   * @param voice Voice message to send (file_id, HTTP URL, or InputFile)
    * @param options Optional text options (caption, parse mode, entities)
    * @returns A VoiceMenuTemplate with the voice message attached
    */
-  voice(voice: string, options?: TextOptions): VoiceMenuTemplate<C> {
+  voice(voice: InputFile | string, options?: TextOptions): VoiceMenuTemplate<C> {
     return new VoiceMenuTemplate<C>([...this.operations], voice, options);
   }
 
@@ -449,7 +451,7 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
 export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(
     operations: Operation<C>[],
-    private photo: string,
+    private photo: InputFile | string,
     private textOptions?: TextOptions,
   ) {
     super();
@@ -476,7 +478,7 @@ export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
 export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(
     operations: Operation<C>[],
-    private video: string,
+    private video: InputFile | string,
     private textOptions?: TextOptions,
   ) {
     super();
@@ -503,7 +505,7 @@ export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
 export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(
     operations: Operation<C>[],
-    private animation: string,
+    private animation: InputFile | string,
     private textOptions?: TextOptions,
   ) {
     super();
@@ -530,7 +532,7 @@ export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C
 export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(
     operations: Operation<C>[],
-    private audio: string,
+    private audio: InputFile | string,
     private textOptions?: TextOptions,
   ) {
     super();
@@ -557,7 +559,7 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
 export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(
     operations: Operation<C>[],
-    private document: string,
+    private document: InputFile | string,
     private textOptions?: TextOptions,
   ) {
     super();
@@ -584,7 +586,7 @@ export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
 export class VoiceMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(
     operations: Operation<C>[],
-    private voice: string,
+    private voice: InputFile | string,
     private textOptions?: TextOptions,
   ) {
     super();
