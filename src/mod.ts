@@ -18,31 +18,15 @@ export type {
 
 export { isMenu, Menu } from "./menu.ts";
 
-export type {
-  AnimationOptions,
-  AudioOptions,
-  ContactOptions,
-  DocumentOptions,
-  LocationOptions,
-  MessagePayload,
-  PhotoOptions,
-  PollOptions,
-  VenueOptions,
-  VideoOptions,
-  VoiceOptions,
-} from "./template.ts";
+export type { MessagePayload, TextOptions } from "./template.ts";
 
 export {
   AnimationMenuTemplate,
   AudioMenuTemplate,
   BaseMenuTemplate,
-  ContactMenuTemplate,
   DocumentMenuTemplate,
-  LocationMenuTemplate,
   PhotoMenuTemplate,
-  PollMenuTemplate,
   TextMenuTemplate,
-  VenueMenuTemplate,
   VideoMenuTemplate,
   VoiceMenuTemplate,
 } from "./template.ts";

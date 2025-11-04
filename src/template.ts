@@ -16,147 +16,29 @@ type Operation<C extends Context> =
   | { type: "row" };
 
 /**
- * Options for photo messages.
+ * Options for text formatting in messages.
  */
-export interface PhotoOptions {
-  caption?: string;
+export interface TextOptions {
+  /** Text content or caption for media messages */
+  text?: string;
+  /** Parse mode for formatting (e.g., "Markdown", "HTML") */
   parseMode?: string;
-  captionEntities?: unknown[];
-  showCaptionAboveMedia?: boolean;
-  hasSpoiler?: boolean;
+  /** Special entities like bold, italic, mentions, etc. */
+  entities?: unknown[];
 }
 
 /**
- * Options for video messages.
- */
-export interface VideoOptions {
-  caption?: string;
-  parseMode?: string;
-  captionEntities?: unknown[];
-  showCaptionAboveMedia?: boolean;
-  hasSpoiler?: boolean;
-  duration?: number;
-  width?: number;
-  height?: number;
-  thumbnail?: string;
-  supportsStreaming?: boolean;
-}
-
-/**
- * Options for animation messages.
- */
-export interface AnimationOptions {
-  caption?: string;
-  parseMode?: string;
-  captionEntities?: unknown[];
-  showCaptionAboveMedia?: boolean;
-  hasSpoiler?: boolean;
-  duration?: number;
-  width?: number;
-  height?: number;
-  thumbnail?: string;
-}
-
-/**
- * Options for audio messages.
- */
-export interface AudioOptions {
-  caption?: string;
-  parseMode?: string;
-  captionEntities?: unknown[];
-  duration?: number;
-  performer?: string;
-  title?: string;
-  thumbnail?: string;
-}
-
-/**
- * Options for document messages.
- */
-export interface DocumentOptions {
-  caption?: string;
-  parseMode?: string;
-  captionEntities?: unknown[];
-  thumbnail?: string;
-  disableContentTypeDetection?: boolean;
-}
-
-/**
- * Options for voice messages.
- */
-export interface VoiceOptions {
-  caption?: string;
-  parseMode?: string;
-  captionEntities?: unknown[];
-  duration?: number;
-}
-
-/**
- * Options for location messages.
- */
-export interface LocationOptions {
-  horizontalAccuracy?: number;
-  livePeriod?: number;
-  heading?: number;
-  proximityAlertRadius?: number;
-}
-
-/**
- * Options for venue messages.
- */
-export interface VenueOptions {
-  foursquareId?: string;
-  foursquareType?: string;
-  googlePlaceId?: string;
-  googlePlaceType?: string;
-}
-
-/**
- * Options for contact messages.
- */
-export interface ContactOptions {
-  lastName?: string;
-  vcard?: string;
-}
-
-/**
- * Options for poll messages.
- */
-export interface PollOptions {
-  isAnonymous?: boolean;
-  type?: "quiz" | "regular";
-  allowsMultipleAnswers?: boolean;
-  correctOptionId?: number;
-  explanation?: string;
-  explanationParseMode?: string;
-  explanationEntities?: unknown[];
-  openPeriod?: number;
-  closeDate?: number;
-  isClosed?: boolean;
-}
-
-/**
- * Message payload types for different Telegram message types.
+ * Message payload types for menus.
+ * Only includes message types that support inline keyboards with text/media content.
  */
 export type MessagePayload =
-  | { type: "text"; text?: string }
-  | { type: "photo"; photo: string; options?: PhotoOptions }
-  | { type: "video"; video: string; options?: VideoOptions }
-  | { type: "animation"; animation: string; options?: AnimationOptions }
-  | { type: "audio"; audio: string; options?: AudioOptions }
-  | { type: "document"; document: string; options?: DocumentOptions }
-  | { type: "voice"; voice: string; options?: VoiceOptions }
-  | { type: "location"; latitude: number; longitude: number; options?: LocationOptions }
-  | {
-    type: "venue";
-    latitude: number;
-    longitude: number;
-    title: string;
-    address: string;
-    options?: VenueOptions;
-  }
-  | { type: "contact"; phoneNumber: string; firstName: string; options?: ContactOptions }
-  | { type: "poll"; question: string; pollOptions: string[]; options?: PollOptions };
+  | { type: "text" } & TextOptions
+  | { type: "photo"; photo: string } & TextOptions
+  | { type: "video"; video: string } & TextOptions
+  | { type: "animation"; animation: string } & TextOptions
+  | { type: "audio"; audio: string } & TextOptions
+  | { type: "document"; document: string } & TextOptions
+  | { type: "voice"; voice: string } & TextOptions;
 
 /**
  * BaseMenuTemplate defines the common structure and button methods for all menu templates.
@@ -479,10 +361,10 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    * The returned template can still have buttons added but cannot have other media attached.
    *
    * @param photo Photo to send (file_id, HTTP URL, or file path)
-   * @param options Optional photo-specific options (caption, parse mode, etc.)
+   * @param options Optional text options (caption, parse mode, entities)
    * @returns A PhotoMenuTemplate with the photo attached
    */
-  photo(photo: string, options?: PhotoOptions): PhotoMenuTemplate<C> {
+  photo(photo: string, options?: TextOptions): PhotoMenuTemplate<C> {
     return new PhotoMenuTemplate<C>([...this.operations], photo, options);
   }
 
@@ -490,10 +372,10 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    * Attaches a video to this menu and returns a VideoMenuTemplate.
    *
    * @param video Video to send (file_id, HTTP URL, or file path)
-   * @param options Optional video-specific options
+   * @param options Optional text options (caption, parse mode, entities)
    * @returns A VideoMenuTemplate with the video attached
    */
-  video(video: string, options?: VideoOptions): VideoMenuTemplate<C> {
+  video(video: string, options?: TextOptions): VideoMenuTemplate<C> {
     return new VideoMenuTemplate<C>([...this.operations], video, options);
   }
 
@@ -501,10 +383,10 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    * Attaches an animation to this menu and returns an AnimationMenuTemplate.
    *
    * @param animation Animation to send (file_id, HTTP URL, or file path)
-   * @param options Optional animation-specific options
+   * @param options Optional text options (caption, parse mode, entities)
    * @returns An AnimationMenuTemplate with the animation attached
    */
-  animation(animation: string, options?: AnimationOptions): AnimationMenuTemplate<C> {
+  animation(animation: string, options?: TextOptions): AnimationMenuTemplate<C> {
     return new AnimationMenuTemplate<C>([...this.operations], animation, options);
   }
 
@@ -512,10 +394,10 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    * Attaches audio to this menu and returns an AudioMenuTemplate.
    *
    * @param audio Audio file to send (file_id, HTTP URL, or file path)
-   * @param options Optional audio-specific options
+   * @param options Optional text options (caption, parse mode, entities)
    * @returns An AudioMenuTemplate with the audio attached
    */
-  audio(audio: string, options?: AudioOptions): AudioMenuTemplate<C> {
+  audio(audio: string, options?: TextOptions): AudioMenuTemplate<C> {
     return new AudioMenuTemplate<C>([...this.operations], audio, options);
   }
 
@@ -523,10 +405,10 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    * Attaches a document to this menu and returns a DocumentMenuTemplate.
    *
    * @param document Document to send (file_id, HTTP URL, or file path)
-   * @param options Optional document-specific options
+   * @param options Optional text options (caption, parse mode, entities)
    * @returns A DocumentMenuTemplate with the document attached
    */
-  document(document: string, options?: DocumentOptions): DocumentMenuTemplate<C> {
+  document(document: string, options?: TextOptions): DocumentMenuTemplate<C> {
     return new DocumentMenuTemplate<C>([...this.operations], document, options);
   }
 
@@ -534,67 +416,11 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    * Attaches a voice message to this menu and returns a VoiceMenuTemplate.
    *
    * @param voice Voice message to send (file_id, HTTP URL, or file path)
-   * @param options Optional voice-specific options
+   * @param options Optional text options (caption, parse mode, entities)
    * @returns A VoiceMenuTemplate with the voice message attached
    */
-  voice(voice: string, options?: VoiceOptions): VoiceMenuTemplate<C> {
+  voice(voice: string, options?: TextOptions): VoiceMenuTemplate<C> {
     return new VoiceMenuTemplate<C>([...this.operations], voice, options);
-  }
-
-  /**
-   * Attaches a location to this menu and returns a LocationMenuTemplate.
-   *
-   * @param latitude Latitude of the location
-   * @param longitude Longitude of the location
-   * @param options Optional location-specific options
-   * @returns A LocationMenuTemplate with the location attached
-   */
-  location(latitude: number, longitude: number, options?: LocationOptions): LocationMenuTemplate<C> {
-    return new LocationMenuTemplate<C>([...this.operations], latitude, longitude, options);
-  }
-
-  /**
-   * Attaches a venue to this menu and returns a VenueMenuTemplate.
-   *
-   * @param latitude Latitude of the venue
-   * @param longitude Longitude of the venue
-   * @param title Name of the venue
-   * @param address Address of the venue
-   * @param options Optional venue-specific options
-   * @returns A VenueMenuTemplate with the venue attached
-   */
-  venue(
-    latitude: number,
-    longitude: number,
-    title: string,
-    address: string,
-    options?: VenueOptions,
-  ): VenueMenuTemplate<C> {
-    return new VenueMenuTemplate<C>([...this.operations], latitude, longitude, title, address, options);
-  }
-
-  /**
-   * Attaches a contact to this menu and returns a ContactMenuTemplate.
-   *
-   * @param phoneNumber Contact's phone number
-   * @param firstName Contact's first name
-   * @param options Optional contact-specific options
-   * @returns A ContactMenuTemplate with the contact attached
-   */
-  contact(phoneNumber: string, firstName: string, options?: ContactOptions): ContactMenuTemplate<C> {
-    return new ContactMenuTemplate<C>([...this.operations], phoneNumber, firstName, options);
-  }
-
-  /**
-   * Attaches a poll to this menu and returns a PollMenuTemplate.
-   *
-   * @param question Poll question
-   * @param pollOptions List of answer options (2-10 strings)
-   * @param options Optional poll-specific options
-   * @returns A PollMenuTemplate with the poll attached
-   */
-  poll(question: string, pollOptions: string[], options?: PollOptions): PollMenuTemplate<C> {
-    return new PollMenuTemplate<C>([...this.operations], question, pollOptions, options);
   }
 
   /**
@@ -606,7 +432,10 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    */
   render(templateMenuId: string, renderedMenuId: string): Menu<C> {
     const { inlineKeyboard, menuKeyboard } = this.buildKeyboards(renderedMenuId);
-    const payload: MessagePayload = { type: "text", text: this.messageText };
+    const payload: MessagePayload = {
+      type: "text",
+      text: this.messageText,
+    };
     return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
   }
 }
@@ -621,7 +450,7 @@ export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(
     operations: Operation<C>[],
     private photo: string,
-    private options?: PhotoOptions,
+    private textOptions?: TextOptions,
   ) {
     super();
     this.operations = operations;
@@ -629,7 +458,11 @@ export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
 
   render(templateMenuId: string, renderedMenuId: string): Menu<C> {
     const { inlineKeyboard, menuKeyboard } = this.buildKeyboards(renderedMenuId);
-    const payload: MessagePayload = { type: "photo", photo: this.photo, options: this.options };
+    const payload: MessagePayload = {
+      type: "photo",
+      photo: this.photo,
+      ...this.textOptions,
+    };
     return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
   }
 }
@@ -644,7 +477,7 @@ export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(
     operations: Operation<C>[],
     private video: string,
-    private options?: VideoOptions,
+    private textOptions?: TextOptions,
   ) {
     super();
     this.operations = operations;
@@ -652,7 +485,11 @@ export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
 
   render(templateMenuId: string, renderedMenuId: string): Menu<C> {
     const { inlineKeyboard, menuKeyboard } = this.buildKeyboards(renderedMenuId);
-    const payload: MessagePayload = { type: "video", video: this.video, options: this.options };
+    const payload: MessagePayload = {
+      type: "video",
+      video: this.video,
+      ...this.textOptions,
+    };
     return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
   }
 }
@@ -667,7 +504,7 @@ export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C
   constructor(
     operations: Operation<C>[],
     private animation: string,
-    private options?: AnimationOptions,
+    private textOptions?: TextOptions,
   ) {
     super();
     this.operations = operations;
@@ -675,7 +512,11 @@ export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C
 
   render(templateMenuId: string, renderedMenuId: string): Menu<C> {
     const { inlineKeyboard, menuKeyboard } = this.buildKeyboards(renderedMenuId);
-    const payload: MessagePayload = { type: "animation", animation: this.animation, options: this.options };
+    const payload: MessagePayload = {
+      type: "animation",
+      animation: this.animation,
+      ...this.textOptions,
+    };
     return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
   }
 }
@@ -690,7 +531,7 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(
     operations: Operation<C>[],
     private audio: string,
-    private options?: AudioOptions,
+    private textOptions?: TextOptions,
   ) {
     super();
     this.operations = operations;
@@ -698,7 +539,11 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
 
   render(templateMenuId: string, renderedMenuId: string): Menu<C> {
     const { inlineKeyboard, menuKeyboard } = this.buildKeyboards(renderedMenuId);
-    const payload: MessagePayload = { type: "audio", audio: this.audio, options: this.options };
+    const payload: MessagePayload = {
+      type: "audio",
+      audio: this.audio,
+      ...this.textOptions,
+    };
     return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
   }
 }
@@ -713,7 +558,7 @@ export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
   constructor(
     operations: Operation<C>[],
     private document: string,
-    private options?: DocumentOptions,
+    private textOptions?: TextOptions,
   ) {
     super();
     this.operations = operations;
@@ -721,7 +566,11 @@ export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
 
   render(templateMenuId: string, renderedMenuId: string): Menu<C> {
     const { inlineKeyboard, menuKeyboard } = this.buildKeyboards(renderedMenuId);
-    const payload: MessagePayload = { type: "document", document: this.document, options: this.options };
+    const payload: MessagePayload = {
+      type: "document",
+      document: this.document,
+      ...this.textOptions,
+    };
     return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
   }
 }
@@ -736,31 +585,7 @@ export class VoiceMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(
     operations: Operation<C>[],
     private voice: string,
-    private options?: VoiceOptions,
-  ) {
-    super();
-    this.operations = operations;
-  }
-
-  render(templateMenuId: string, renderedMenuId: string): Menu<C> {
-    const { inlineKeyboard, menuKeyboard } = this.buildKeyboards(renderedMenuId);
-    const payload: MessagePayload = { type: "voice", voice: this.voice, options: this.options };
-    return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
-  }
-}
-
-/**
- * LocationMenuTemplate represents a menu with an attached location.
- * This template type does not allow attaching additional media.
- *
- * @template C The grammY Context type
- */
-export class LocationMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
-  constructor(
-    operations: Operation<C>[],
-    private latitude: number,
-    private longitude: number,
-    private options?: LocationOptions,
+    private textOptions?: TextOptions,
   ) {
     super();
     this.operations = operations;
@@ -769,101 +594,9 @@ export class LocationMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
   render(templateMenuId: string, renderedMenuId: string): Menu<C> {
     const { inlineKeyboard, menuKeyboard } = this.buildKeyboards(renderedMenuId);
     const payload: MessagePayload = {
-      type: "location",
-      latitude: this.latitude,
-      longitude: this.longitude,
-      options: this.options,
-    };
-    return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
-  }
-}
-
-/**
- * VenueMenuTemplate represents a menu with an attached venue.
- * This template type does not allow attaching additional media.
- *
- * @template C The grammY Context type
- */
-export class VenueMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
-  constructor(
-    operations: Operation<C>[],
-    private latitude: number,
-    private longitude: number,
-    private title: string,
-    private address: string,
-    private options?: VenueOptions,
-  ) {
-    super();
-    this.operations = operations;
-  }
-
-  render(templateMenuId: string, renderedMenuId: string): Menu<C> {
-    const { inlineKeyboard, menuKeyboard } = this.buildKeyboards(renderedMenuId);
-    const payload: MessagePayload = {
-      type: "venue",
-      latitude: this.latitude,
-      longitude: this.longitude,
-      title: this.title,
-      address: this.address,
-      options: this.options,
-    };
-    return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
-  }
-}
-
-/**
- * ContactMenuTemplate represents a menu with an attached contact.
- * This template type does not allow attaching additional media.
- *
- * @template C The grammY Context type
- */
-export class ContactMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
-  constructor(
-    operations: Operation<C>[],
-    private phoneNumber: string,
-    private firstName: string,
-    private options?: ContactOptions,
-  ) {
-    super();
-    this.operations = operations;
-  }
-
-  render(templateMenuId: string, renderedMenuId: string): Menu<C> {
-    const { inlineKeyboard, menuKeyboard } = this.buildKeyboards(renderedMenuId);
-    const payload: MessagePayload = {
-      type: "contact",
-      phoneNumber: this.phoneNumber,
-      firstName: this.firstName,
-      options: this.options,
-    };
-    return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
-  }
-}
-
-/**
- * PollMenuTemplate represents a menu with an attached poll.
- * This template type does not allow attaching additional media.
- *
- * @template C The grammY Context type
- */
-export class PollMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
-  constructor(
-    operations: Operation<C>[],
-    private question: string,
-    private pollOptions: string[],
-    private options?: PollOptions,
-  ) {
-    super();
-    this.operations = operations;
-  }
-
-  render(templateMenuId: string, renderedMenuId: string): Menu<C> {
-    const { inlineKeyboard, menuKeyboard } = this.buildKeyboards(renderedMenuId);
-    const payload: MessagePayload = {
-      type: "poll",
-      question: this.question,
-      pollOptions: this.pollOptions,
-      options: this.options,
+      type: "voice",
+      voice: this.voice,
+      ...this.textOptions,
     };
     return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
   }
