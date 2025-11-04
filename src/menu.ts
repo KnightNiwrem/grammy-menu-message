@@ -67,9 +67,9 @@ export function isMenu<C extends Context>(value: unknown): value is Menu<C> {
     typeof obj.templateMenuId === "string" &&
     typeof obj.renderedMenuId === "string" &&
     (obj.messagePayload === undefined ||
-     (obj.messagePayload !== null &&
-      typeof obj.messagePayload === "object" &&
-      "type" in obj.messagePayload)) &&
+      (obj.messagePayload !== null &&
+        typeof obj.messagePayload === "object" &&
+        "type" in obj.messagePayload)) &&
     Array.isArray(obj.menuKeyboard) &&
     isInlineKeyboard(obj.inline_keyboard)
   );
