@@ -64,6 +64,7 @@
 - Keep commits atomic with conventional prefixes (`feat:`, `fix:`, `test:`, `chore:`...).
 - Include evidence (test output, screenshots, or logs) in PRs; reject merges with failing checks.
 - Never push secrets; scan diffs for credentials before committing.
+- **`deno task ok` must run and pass before pushing.** This validates formatting, linting, tests, and type checking.
 - After making changes, commit and push to the feature branch.
 
 ## Agent Playbook
