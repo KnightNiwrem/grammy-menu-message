@@ -23,11 +23,7 @@ function messagePayloadToApiFields(messagePayload: MessagePayload): Record<strin
 
   // Handle parse mode
   if (messagePayload.parseMode !== undefined) {
-    if (messagePayload.type === "text") {
-      fields.parse_mode = messagePayload.parseMode;
-    } else {
-      fields.caption_parse_mode = messagePayload.parseMode;
-    }
+    fields.parse_mode = messagePayload.parseMode;
   }
 
   // Handle entities
