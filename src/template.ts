@@ -33,7 +33,7 @@ type Operation<C extends Context> =
  */
 export class MenuTemplate<C extends Context> {
   private operations: Operation<C>[] = [];
-  private _messageText: string | undefined;
+  messageText: string | undefined;
 
   /**
    * Creates a new MenuTemplate instance.
@@ -41,16 +41,7 @@ export class MenuTemplate<C extends Context> {
    * @param messageText Optional text that will be used to override sent message text payload in MenuRegistry's transformer
    */
   constructor(messageText?: string) {
-    this._messageText = messageText;
-  }
-
-  /**
-   * Gets the messageText field.
-   *
-   * @returns The current messageText value, or undefined if not set
-   */
-  get messageText(): string | undefined {
-    return this._messageText;
+    this.messageText = messageText;
   }
 
   /**
@@ -59,8 +50,8 @@ export class MenuTemplate<C extends Context> {
    * @param messageText The text to set, or undefined to clear it
    * @returns this for method chaining
    */
-  setMessageText(messageText: string | undefined): this {
-    this._messageText = messageText;
+  text(messageText: string | undefined): this {
+    this.messageText = messageText;
     return this;
   }
 
