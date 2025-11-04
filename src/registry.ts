@@ -1,5 +1,5 @@
 import type { MiddlewareFn, StorageAdapter } from "./dep.ts";
-import type { MenuTemplate } from "./template.ts";
+import type { BaseMenuTemplate } from "./template.ts";
 import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
 
 import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
@@ -27,7 +27,7 @@ import { createMenuRegistryTransformer } from "./transformer.ts";
  * ```
  */
 export class MenuRegistry<C extends Context> {
-  private templates: Map<string, MenuTemplate<C>> = new Map();
+  private templates: Map<string, BaseMenuTemplate<C>> = new Map();
 
   private composer: Composer<C>;
 
@@ -165,7 +165,7 @@ export class MenuRegistry<C extends Context> {
    * registry.register("greeting", template);
    * ```
    */
-  register(templateMenuId: string, template: MenuTemplate<C>): void {
+  register(templateMenuId: string, template: BaseMenuTemplate<C>): void {
     this.templates.set(templateMenuId, template);
   }
 
@@ -183,7 +183,7 @@ export class MenuRegistry<C extends Context> {
    * }
    * ```
    */
-  get(templateMenuId: string): MenuTemplate<C> | undefined {
+  get(templateMenuId: string): BaseMenuTemplate<C> | undefined {
     return this.templates.get(templateMenuId);
   }
 

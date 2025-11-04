@@ -1,5 +1,6 @@
 import type { Context, InlineKeyboardButton } from "./dep.ts";
 import type { MenuButton } from "./types.ts";
+import type { MessagePayload } from "./template.ts";
 
 import { isInlineKeyboard } from "./typeguards/inline-keyboard.ts";
 
@@ -17,14 +18,14 @@ export class Menu<C extends Context> {
    *
    * @param templateMenuId Unique identifier for the menu template this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
-   * @param messageText Optional text that will be used to override sent message text payload in MenuRegistry's transformer
+   * @param messagePayload Optional message payload that will be used to override sent message payload in MenuRegistry's transformer
    * @param menuKeyboard 2D array of button objects with full handler information for internal use
    * @param inlineKeyboard The inline keyboard button layout for Telegram API compatibility
    */
   constructor(
     public readonly templateMenuId: string,
     public readonly renderedMenuId: string,
-    public readonly messageText: string | undefined,
+    public readonly messagePayload: MessagePayload | undefined,
     public readonly menuKeyboard: MenuButton<C>[][],
     private readonly inlineKeyboard: InlineKeyboardButton[][],
   ) {}
@@ -37,6 +38,16 @@ export class Menu<C extends Context> {
    */
   get inline_keyboard(): InlineKeyboardButton[][] {
     return this.inlineKeyboard;
+  }
+
+  /**
+   * Legacy property for backwards compatibility with text-only menus.
+   * Returns the text from the messagePayload if it's a text message, undefined otherwise.
+   *
+   * @deprecated Use messagePayload instead
+   */
+  get messageText(): string | undefined {
+    return this.messagePayload?.type === "text" ? this.messagePayload.text : undefined;
   }
 }
 
@@ -65,7 +76,7 @@ export function isMenu<C extends Context>(value: unknown): value is Menu<C> {
   return (
     typeof obj.templateMenuId === "string" &&
     typeof obj.renderedMenuId === "string" &&
-    (typeof obj.messageText === "string" || obj.messageText === undefined) &&
+    (typeof obj.messagePayload === "object" || obj.messagePayload === undefined) &&
     Array.isArray(obj.menuKeyboard) &&
     isInlineKeyboard(obj.inline_keyboard)
   );
