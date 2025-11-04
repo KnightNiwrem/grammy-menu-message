@@ -2,6 +2,7 @@
 
 - Deno-based library project; keep human-facing docs in `README.md` and use this file for agent directives.
 - Work remains agent-agnostic—assume no private credentials are available and prefer reproducible, scripted changes.
+- **Pre-release status:** This library has not been published yet. Do NOT add backwards compatibility code, deprecation warnings, or maintain legacy APIs. Breaking changes are acceptable and expected.
 
 ## Environment & Tooling
 

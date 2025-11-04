@@ -39,16 +39,6 @@ export class Menu<C extends Context> {
   get inline_keyboard(): InlineKeyboardButton[][] {
     return this.inlineKeyboard;
   }
-
-  /**
-   * Legacy property for backwards compatibility with text-only menus.
-   * Returns the text from the messagePayload if it's a text message, undefined otherwise.
-   *
-   * @deprecated Use messagePayload instead
-   */
-  get messageText(): string | undefined {
-    return this.messagePayload?.type === "text" ? this.messagePayload.text : undefined;
-  }
 }
 
 /**

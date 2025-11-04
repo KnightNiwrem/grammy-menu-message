@@ -1,7 +1,7 @@
 /**
  * grammY Menu Message - A menu system for grammY bots
  *
- * Provides MenuTemplate for defining menu structures, MenuRegistry for managing
+ * Provides TextMenuTemplate for defining menu structures, MenuRegistry for managing
  * registered templates, and Menu for rendering inline keyboards with persistent
  * navigation history support.
  *
@@ -39,7 +39,6 @@ export {
   ContactMenuTemplate,
   DocumentMenuTemplate,
   LocationMenuTemplate,
-  MenuTemplate,
   PhotoMenuTemplate,
   PollMenuTemplate,
   TextMenuTemplate,

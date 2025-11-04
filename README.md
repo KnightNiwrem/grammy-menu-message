@@ -4,7 +4,7 @@ A tiny menu system for grammY bots that helps you build and handle inline keyboa
 
 It provides:
 
-- MenuTemplate: a builder for defining menus
+- TextMenuTemplate: a builder for defining text-based menus with optional media attachments
 - Menu: a rendered inline keyboard plus callback handlers
 - MenuRegistry: registers templates, renders menus, and routes callback_query updates
 
@@ -12,7 +12,7 @@ It provides:
 
 ```ts
 import { Bot } from "grammy";
-import { MenuRegistry, MenuTemplate } from "./src/mod.ts";
+import { MenuRegistry, TextMenuTemplate } from "./src/mod.ts";
 
 const bot = new Bot(
   Deno.env
@@ -22,7 +22,7 @@ const bot = new Bot(
 );
 
 const registry = new MenuRegistry();
-const main = new MenuTemplate("Choose:")
+const main = new TextMenuTemplate("Choose:")
   .cb(
     "Say hi",
     async (

@@ -26,7 +26,6 @@ describe("Menu", () => {
       expect(menu.templateMenuId).toBe(templateMenuId);
       expect(menu.renderedMenuId).toBe(renderedMenuId);
       expect(menu.messagePayload).toBe(messagePayload);
-      expect(menu.messageText).toBe("Test message");
       expect(menu.menuKeyboard).toBe(menuKeyboard);
     });
 
@@ -165,7 +164,6 @@ describe("Menu", () => {
         expect(input.templateMenuId).toBe(templateMenuId);
         expect(input.renderedMenuId).toBe(renderedMenuId);
         expect(input.messagePayload).toBe(messagePayload);
-        expect(input.messageText).toBe("Test message");
       }
     });
   });

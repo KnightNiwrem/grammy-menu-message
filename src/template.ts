@@ -868,9 +868,3 @@ export class PollMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
     return new Menu(templateMenuId, renderedMenuId, payload, menuKeyboard, inlineKeyboard);
   }
 }
-
-/**
- * Legacy alias for TextMenuTemplate for backwards compatibility.
- * @deprecated Use TextMenuTemplate instead
- */
-export const MenuTemplate = TextMenuTemplate;
