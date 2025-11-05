@@ -28,12 +28,11 @@ export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
   constructor(document: InputFile | string, messageText?: string) {
     super(messageText);
     this.document = document;
-    this.kind = "document";
   }
 
   /** The document media to be sent with the menu */
   document: InputFile | string;
 
   /** Differentiates the media type */
-  kind: "document";
+  readonly kind = "document" as const;
 }

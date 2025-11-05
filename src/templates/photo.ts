@@ -28,12 +28,11 @@ export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(photo: InputFile | string, messageText?: string) {
     super(messageText);
     this.photo = photo;
-    this.kind = "photo";
   }
 
   /** The photo media to be sent with the menu */
   photo: InputFile | string;
 
   /** Differentiates the media type */
-  kind: "photo";
+  readonly kind = "photo" as const;
 }

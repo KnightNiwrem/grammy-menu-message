@@ -28,12 +28,11 @@ export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C
   constructor(animation: InputFile | string, messageText?: string) {
     super(messageText);
     this.animation = animation;
-    this.kind = "animation";
   }
 
   /** The animation media to be sent with the menu */
   animation: InputFile | string;
 
   /** Differentiates the media type */
-  kind: "animation";
+  readonly kind = "animation" as const;
 }

@@ -28,12 +28,11 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(audio: InputFile | string, messageText?: string) {
     super(messageText);
     this.audio = audio;
-    this.kind = "audio";
   }
 
   /** The audio media to be sent with the menu */
   audio: InputFile | string;
 
   /** Differentiates the media type */
-  kind: "audio";
+  readonly kind = "audio" as const;
 }

@@ -28,12 +28,11 @@ export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   constructor(video: InputFile | string, messageText?: string) {
     super(messageText);
     this.video = video;
-    this.kind = "video";
   }
 
   /** The video media to be sent with the menu */
   video: InputFile | string;
 
   /** Differentiates the media type */
-  kind: "video";
+  readonly kind = "video" as const;
 }
