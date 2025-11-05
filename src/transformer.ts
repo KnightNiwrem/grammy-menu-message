@@ -115,11 +115,12 @@ export function createMenuRegistryTransformer<C extends Context>(
             payload = { ...payload, caption: messageText };
           }
         } else if (method === "editMessageMedia") {
-          if (typeof payload.media === "object" && payload.media !== null) {
+          const payloadMedia = (payload as Record<string, unknown>).media;
+          if (typeof payloadMedia === "object" && payloadMedia !== null) {
             payload = {
               ...payload,
               media: {
-                ...payload.media,
+                ...(payloadMedia as Record<string, unknown>),
                 media,
                 ...(messageText ? { caption: messageText } : {}),
               },
