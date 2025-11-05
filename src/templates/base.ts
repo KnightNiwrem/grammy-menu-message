@@ -8,7 +8,7 @@ import type {
 } from "../dep.ts";
 import type { MenuButton, MenuButtonHandler } from "../types.ts";
 
-import { Menu } from "../menu.ts";
+import { BaseMenu } from "../menu/base.ts";
 
 type Operation<C extends Context> =
   | { type: "nativeButton"; data: InlineKeyboardButton }
@@ -266,7 +266,7 @@ export class BaseMenuTemplate<C extends Context> {
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
    * @returns A Menu instance with newly constructed button arrays
    */
-  render(templateMenuId: string, renderedMenuId: string): Menu<C> {
+  render(templateMenuId: string, renderedMenuId: string): BaseMenu<C> {
     const inlineKeyboard: InlineKeyboardButton[][] = [];
     const menuKeyboard: MenuButton<C>[][] = [];
     let inlineRow: InlineKeyboardButton[] = [];
@@ -306,6 +306,6 @@ export class BaseMenuTemplate<C extends Context> {
       menuKeyboard.push(menuRow);
     }
 
-    return new Menu(templateMenuId, renderedMenuId, this.messageText, menuKeyboard, inlineKeyboard);
+    return new BaseMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
   }
 }

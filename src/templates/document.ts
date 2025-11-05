@@ -1,5 +1,6 @@
 import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuTemplate } from "./base.ts";
+import { DocumentMenu } from "../menu/document.ts";
 
 /**
  * DocumentMenuTemplate extends BaseMenuTemplate to include a document media field.
@@ -35,4 +36,22 @@ export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
 
   /** Differentiates the media type */
   readonly kind = "document" as const;
+
+  /**
+   * Renders the template into a DocumentMenu with a fresh inline keyboard instance.
+   *
+   * @param templateMenuId Identifier for the menu template this was rendered from
+   * @param renderedMenuId Unique identifier for this specific rendered menu instance
+   * @returns A DocumentMenu instance with newly constructed button arrays
+   */
+  override render(templateMenuId: string, renderedMenuId: string): DocumentMenu<C> {
+    const baseMenu = super.render(templateMenuId, renderedMenuId);
+    return new DocumentMenu(
+      templateMenuId,
+      renderedMenuId,
+      this.document,
+      baseMenu.menuKeyboard,
+      baseMenu.inline_keyboard,
+    );
+  }
 }

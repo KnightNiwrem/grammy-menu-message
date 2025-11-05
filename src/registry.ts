@@ -3,7 +3,7 @@ import type { BaseMenuTemplate } from "./templates/base.ts";
 import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
 
 import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
-import { Menu } from "./menu.ts";
+import { BaseMenu } from "./menu/base.ts";
 import { regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
 import { createMenuRegistryTransformer } from "./transformer.ts";
 
@@ -218,7 +218,7 @@ export class MenuRegistry<C extends Context> {
    * await ctx.reply("Choose an option:", { reply_markup: menu });
    * ```
    */
-  menu(templateMenuId: string): Menu<C> {
+  menu(templateMenuId: string): BaseMenu<C> {
     const template = this.get(templateMenuId);
     if (!template) {
       throw new Error(

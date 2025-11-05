@@ -1,5 +1,6 @@
 import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuTemplate } from "./base.ts";
+import { AudioMenu } from "../menu/audio.ts";
 
 /**
  * AudioMenuTemplate extends BaseMenuTemplate to include an audio media field.
@@ -35,4 +36,22 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
 
   /** Differentiates the media type */
   readonly kind = "audio" as const;
+
+  /**
+   * Renders the template into an AudioMenu with a fresh inline keyboard instance.
+   *
+   * @param templateMenuId Identifier for the menu template this was rendered from
+   * @param renderedMenuId Unique identifier for this specific rendered menu instance
+   * @returns An AudioMenu instance with newly constructed button arrays
+   */
+  override render(templateMenuId: string, renderedMenuId: string): AudioMenu<C> {
+    const baseMenu = super.render(templateMenuId, renderedMenuId);
+    return new AudioMenu(
+      templateMenuId,
+      renderedMenuId,
+      this.audio,
+      baseMenu.menuKeyboard,
+      baseMenu.inline_keyboard,
+    );
+  }
 }

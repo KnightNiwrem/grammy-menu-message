@@ -16,9 +16,16 @@ export type {
   RenderedMenuData,
 } from "./types.ts";
 
-export { isMenu, Menu } from "./menu.ts";
+export { BaseMenu, isBaseMenu } from "./menu/base.ts";
+export { TextMenu } from "./menu/text.ts";
+export { PhotoMenu } from "./menu/photo.ts";
+export { VideoMenu } from "./menu/video.ts";
+export { AnimationMenu } from "./menu/animation.ts";
+export { AudioMenu } from "./menu/audio.ts";
+export { DocumentMenu } from "./menu/document.ts";
 export { BaseMenuTemplate, BaseMenuTemplate as MenuTemplate } from "./templates/base.ts";
 export type { BaseMenuTemplate as MenuTemplateType } from "./templates/base.ts";
+export { TextMenuTemplate } from "./templates/text.ts";
 export { PhotoMenuTemplate } from "./templates/photo.ts";
 export { VideoMenuTemplate } from "./templates/video.ts";
 export { AnimationMenuTemplate } from "./templates/animation.ts";
