@@ -86,14 +86,29 @@ export function createMenuRegistryTransformer<C extends Context>(
           // For send methods, set media based on type
           if ("photo" in menu && method === "sendPhoto") {
             payload = { ...payload, photo: media };
+            if (messageText) {
+              payload = { ...payload, caption: messageText };
+            }
           } else if ("video" in menu && method === "sendVideo") {
             payload = { ...payload, video: media };
+            if (messageText) {
+              payload = { ...payload, caption: messageText };
+            }
           } else if ("animation" in menu && method === "sendAnimation") {
             payload = { ...payload, animation: media };
+            if (messageText) {
+              payload = { ...payload, caption: messageText };
+            }
           } else if ("audio" in menu && method === "sendAudio") {
             payload = { ...payload, audio: media };
+            if (messageText) {
+              payload = { ...payload, caption: messageText };
+            }
           } else if ("document" in menu && method === "sendDocument") {
             payload = { ...payload, document: media };
+            if (messageText) {
+              payload = { ...payload, caption: messageText };
+            }
           }
         } else if (method === "editMessageCaption") {
           if (messageText) {
