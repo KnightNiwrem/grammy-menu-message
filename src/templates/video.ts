@@ -34,5 +34,5 @@ export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   video: InputFile | string;
 
   /** Differentiates the media type */
-  readonly kind = "video" as const;
+  override readonly kind = "video" as const;
 }

@@ -34,5 +34,5 @@ export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C
   animation: InputFile | string;
 
   /** Differentiates the media type */
-  readonly kind = "animation" as const;
+  override readonly kind = "animation" as const;
 }

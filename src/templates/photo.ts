@@ -34,5 +34,5 @@ export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   photo: InputFile | string;
 
   /** Differentiates the media type */
-  readonly kind = "photo" as const;
+  override readonly kind = "photo" as const;
 }

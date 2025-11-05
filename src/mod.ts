@@ -26,6 +26,8 @@ export { AudioMenuTemplate } from "./templates/audio.ts";
 export { DocumentMenuTemplate } from "./templates/document.ts";
 export { MenuRegistry } from "./registry.ts";
 export { createMenuRegistryTransformer } from "./transformer.ts";
+export { sendMenuMiddleware } from "./middleware.ts";
+export type { MenuContext } from "./middleware.ts";
 export { isInlineKeyboardButton } from "./typeguards/inline-keyboard-button.ts";
 export { isCallbackButton } from "./typeguards/callback-button.ts";
 export { isCopyTextButton } from "./typeguards/copy-text-button.ts";

@@ -20,6 +20,7 @@ export class Menu<C extends Context> {
    * @param messageText Optional text that will be used to override sent message text payload in MenuRegistry's transformer
    * @param menuKeyboard 2D array of button objects with full handler information for internal use
    * @param inlineKeyboard The inline keyboard button layout for Telegram API compatibility
+   * @param kind The type of menu (message, photo, video, etc.)
    */
   constructor(
     public readonly templateMenuId: string,
@@ -27,6 +28,7 @@ export class Menu<C extends Context> {
     public readonly messageText: string | undefined,
     public readonly menuKeyboard: MenuButton<C>[][],
     private readonly inlineKeyboard: InlineKeyboardButton[][],
+    public readonly kind: "message" | "photo" | "video" | "animation" | "audio" | "document" = "message",
   ) {}
 
   /**

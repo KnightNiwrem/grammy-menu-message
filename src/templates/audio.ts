@@ -34,5 +34,5 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   audio: InputFile | string;
 
   /** Differentiates the media type */
-  readonly kind = "audio" as const;
+  override readonly kind = "audio" as const;
 }

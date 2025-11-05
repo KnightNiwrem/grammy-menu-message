@@ -34,5 +34,5 @@ export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
   document: InputFile | string;
 
   /** Differentiates the media type */
-  readonly kind = "document" as const;
+  override readonly kind = "document" as const;
 }

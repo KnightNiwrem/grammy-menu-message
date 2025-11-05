@@ -34,6 +34,7 @@ type Operation<C extends Context> =
 export class BaseMenuTemplate<C extends Context> {
   private operations: Operation<C>[] = [];
   messageText: string | undefined;
+  kind: "message" | "photo" | "video" | "animation" | "audio" | "document" = "message";
 
   /**
    * Creates a new BaseMenuTemplate instance.
@@ -306,6 +307,6 @@ export class BaseMenuTemplate<C extends Context> {
       menuKeyboard.push(menuRow);
     }
 
-    return new Menu(templateMenuId, renderedMenuId, this.messageText, menuKeyboard, inlineKeyboard);
+    return new Menu(templateMenuId, renderedMenuId, this.messageText, menuKeyboard, inlineKeyboard, this.kind);
   }
 }
