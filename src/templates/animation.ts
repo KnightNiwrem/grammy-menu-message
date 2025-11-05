@@ -1,5 +1,6 @@
 import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuTemplate } from "./base.ts";
+import { AnimationMenu } from "../menu/animation.ts";
 
 /**
  * AnimationMenuTemplate extends BaseMenuTemplate to include an animation media field.
@@ -35,4 +36,22 @@ export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C
 
   /** Differentiates the media type */
   readonly kind = "animation" as const;
+
+  /**
+   * Renders the template into an AnimationMenu with a fresh inline keyboard instance.
+   *
+   * @param templateMenuId Identifier for the menu template this was rendered from
+   * @param renderedMenuId Unique identifier for this specific rendered menu instance
+   * @returns An AnimationMenu instance with newly constructed button arrays
+   */
+  override render(templateMenuId: string, renderedMenuId: string): AnimationMenu<C> {
+    const baseMenu = super.render(templateMenuId, renderedMenuId);
+    return new AnimationMenu(
+      templateMenuId,
+      renderedMenuId,
+      this.animation,
+      baseMenu.menuKeyboard,
+      baseMenu.inline_keyboard,
+    );
+  }
 }

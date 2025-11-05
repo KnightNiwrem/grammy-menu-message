@@ -1,37 +1,35 @@
-import type { Context, InlineKeyboardButton } from "./dep.ts";
-import type { MenuButton } from "./types.ts";
+import type { Context, InlineKeyboardButton } from "../dep.ts";
+import type { MenuButton } from "../types.ts";
 
-import { isInlineKeyboard } from "./typeguards/inline-keyboard.ts";
+import { isInlineKeyboard } from "../typeguards/inline-keyboard.ts";
 
 /**
- * Menu represents a rendered menu with an inline keyboard and associated callback handlers.
- * Each Menu instance is immutable and tracks its template origin and unique render ID.
+ * BaseMenu represents a rendered menu with an inline keyboard and associated callback handlers.
+ * Each BaseMenu instance is immutable and tracks its template origin and unique render ID.
  * Contains both the Telegram-compatible inline keyboard and the internal button metadata
  * with handler references for middleware routing.
  *
  * @template C The grammY Context type
  */
-export class Menu<C extends Context> {
+export class BaseMenu<C extends Context> {
   /**
-   * Creates a new Menu instance.
+   * Creates a new BaseMenu instance.
    *
    * @param templateMenuId Unique identifier for the menu template this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
-   * @param messageText Optional text that will be used to override sent message text payload in MenuRegistry's transformer
    * @param menuKeyboard 2D array of button objects with full handler information for internal use
    * @param inlineKeyboard The inline keyboard button layout for Telegram API compatibility
    */
   constructor(
     public readonly templateMenuId: string,
     public readonly renderedMenuId: string,
-    public readonly messageText: string | undefined,
     public readonly menuKeyboard: MenuButton<C>[][],
     private readonly inlineKeyboard: InlineKeyboardButton[][],
   ) {}
 
   /**
    * Gets the inline keyboard structure for this menu.
-   * This property makes Menu compatible with grammY's reply_markup interface.
+   * This property makes BaseMenu compatible with grammY's reply_markup interface.
    *
    * @returns The inline keyboard button layout for Telegram API
    */
@@ -41,22 +39,22 @@ export class Menu<C extends Context> {
 }
 
 /**
- * Type guard function to check if a value is a Menu instance.
+ * Type guard function to check if a value is a BaseMenu instance.
  * Useful for type narrowing when handling mixed types that might contain menus.
  *
  * @param value The value to check
- * @returns True if the value is a Menu instance, false otherwise
+ * @returns True if the value is a BaseMenu instance, false otherwise
  *
  * @example
  * ```ts
  * function processInput(input: unknown) {
- *   if (isMenu(input)) {
+ *   if (isBaseMenu(input)) {
  *     console.log(input.templateMenuId); // TypeScript knows this is safe
  *   }
  * }
  * ```
  */
-export function isMenu<C extends Context>(value: unknown): value is Menu<C> {
+export function isBaseMenu<C extends Context>(value: unknown): value is BaseMenu<C> {
   if (value === null || typeof value !== "object") {
     return false;
   }
@@ -65,7 +63,6 @@ export function isMenu<C extends Context>(value: unknown): value is Menu<C> {
   return (
     typeof obj.templateMenuId === "string" &&
     typeof obj.renderedMenuId === "string" &&
-    (typeof obj.messageText === "string" || obj.messageText === undefined) &&
     Array.isArray(obj.menuKeyboard) &&
     isInlineKeyboard(obj.inline_keyboard)
   );

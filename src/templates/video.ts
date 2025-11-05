@@ -1,5 +1,6 @@
 import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuTemplate } from "./base.ts";
+import { VideoMenu } from "../menu/video.ts";
 
 /**
  * VideoMenuTemplate extends BaseMenuTemplate to include a video media field.
@@ -35,4 +36,22 @@ export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
 
   /** Differentiates the media type */
   readonly kind = "video" as const;
+
+  /**
+   * Renders the template into a VideoMenu with a fresh inline keyboard instance.
+   *
+   * @param templateMenuId Identifier for the menu template this was rendered from
+   * @param renderedMenuId Unique identifier for this specific rendered menu instance
+   * @returns A VideoMenu instance with newly constructed button arrays
+   */
+  override render(templateMenuId: string, renderedMenuId: string): VideoMenu<C> {
+    const baseMenu = super.render(templateMenuId, renderedMenuId);
+    return new VideoMenu(
+      templateMenuId,
+      renderedMenuId,
+      this.video,
+      baseMenu.menuKeyboard,
+      baseMenu.inline_keyboard,
+    );
+  }
 }
