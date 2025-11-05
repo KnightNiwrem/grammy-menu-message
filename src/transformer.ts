@@ -95,10 +95,20 @@ export function createMenuRegistryTransformer<C extends Context>(
           } else if ("document" in menu && method === "sendDocument") {
             payload = { ...payload, document: media };
           }
-        } else if (method === "editMessageCaption" || method === "editMessageMedia") {
-          // For edit methods, we might need to set caption
+        } else if (method === "editMessageCaption") {
           if (messageText) {
             payload = { ...payload, caption: messageText };
+          }
+        } else if (method === "editMessageMedia") {
+          if (typeof payload.media === "object" && payload.media !== null) {
+            payload = {
+              ...payload,
+              media: {
+                ...payload.media,
+                media,
+                ...(messageText ? { caption: messageText } : {}),
+              },
+            };
           }
         }
       }
