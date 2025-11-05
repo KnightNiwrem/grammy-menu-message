@@ -1,5 +1,5 @@
 import type { MiddlewareFn, StorageAdapter } from "./dep.ts";
-import type { MenuTemplate } from "./template.ts";
+import type { BaseMenuTemplate } from "./templates/base.ts";
 import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
 
 import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
@@ -17,7 +17,7 @@ import { createMenuRegistryTransformer } from "./transformer.ts";
  * @example
  * ```typescript
  * const registry = new MenuRegistry<Context>();
- * const template = new MenuTemplate<Context>()
+ * const template = new BaseMenuTemplate<Context>()
  *   .cb("Button", async (ctx) => {
  *     await ctx.answerCallbackQuery("Clicked!");
  *   })
@@ -27,7 +27,7 @@ import { createMenuRegistryTransformer } from "./transformer.ts";
  * ```
  */
 export class MenuRegistry<C extends Context> {
-  private templates: Map<string, MenuTemplate<C>> = new Map();
+  private templates: Map<string, BaseMenuTemplate<C>> = new Map();
 
   private composer: Composer<C>;
 
@@ -157,23 +157,23 @@ export class MenuRegistry<C extends Context> {
    * Templates must be registered before they can be rendered via the menu() method.
    *
    * @param templateMenuId The unique identifier for the menu template
-   * @param template The MenuTemplate instance to register
+   * @param template The BaseMenuTemplate instance to register
    *
    * @example
    * ```typescript
-   * const template = new MenuTemplate<Context>().cb("Hello", handler);
+   * const template = new BaseMenuTemplate<Context>().cb("Hello", handler);
    * registry.register("greeting", template);
    * ```
    */
-  register(templateMenuId: string, template: MenuTemplate<C>): void {
+  register(templateMenuId: string, template: BaseMenuTemplate<C>): void {
     this.templates.set(templateMenuId, template);
   }
 
   /**
-   * Retrieves a registered MenuTemplate by its ID.
+   * Retrieves a registered BaseMenuTemplate by its ID.
    *
    * @param templateMenuId The unique identifier of the menu template
-   * @returns The MenuTemplate instance, or undefined if not found
+   * @returns The BaseMenuTemplate instance, or undefined if not found
    *
    * @example
    * ```typescript
@@ -183,7 +183,7 @@ export class MenuRegistry<C extends Context> {
    * }
    * ```
    */
-  get(templateMenuId: string): MenuTemplate<C> | undefined {
+  get(templateMenuId: string): BaseMenuTemplate<C> | undefined {
     return this.templates.get(templateMenuId);
   }
 
