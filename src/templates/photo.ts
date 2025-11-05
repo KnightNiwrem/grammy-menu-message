@@ -1,4 +1,4 @@
-import type { Context, InputMediaPhoto } from "../dep.ts";
+import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuTemplate } from "./base.ts";
 
 /**
@@ -10,7 +10,7 @@ import { BaseMenuTemplate } from "./base.ts";
  * @example
  * ```typescript
  * const photoMenu = new PhotoMenuTemplate<Context>(
- *   { type: "photo", media: "https://example.com/photo.jpg" },
+ *   "https://example.com/photo.jpg",
  *   "Choose an option:"
  * )
  *   .cb("Option 1", async (ctx) => { await ctx.answerCallbackQuery("1"); })
@@ -22,14 +22,17 @@ export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   /**
    * Creates a new PhotoMenuTemplate instance.
    *
-   * @param photo The InputMediaPhoto object containing photo content
+   * @param photo The photo file as InputFile or URL string
    * @param messageText Optional text that will be used in the menu
    */
-  constructor(photo: InputMediaPhoto, messageText?: string) {
+  constructor(photo: InputFile | string, messageText?: string) {
     super(messageText);
     this.photo = photo;
   }
 
   /** The photo media to be sent with the menu */
-  photo: InputMediaPhoto;
+  photo: InputFile | string;
+
+  /** Differentiates the media type */
+  readonly kind = "photo" as const;
 }

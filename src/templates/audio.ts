@@ -1,4 +1,4 @@
-import type { Context, InputMediaAudio } from "../dep.ts";
+import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuTemplate } from "./base.ts";
 
 /**
@@ -10,7 +10,7 @@ import { BaseMenuTemplate } from "./base.ts";
  * @example
  * ```typescript
  * const audioMenu = new AudioMenuTemplate<Context>(
- *   { type: "audio", media: "https://example.com/audio.mp3" },
+ *   "https://example.com/audio.mp3",
  *   "Choose an option:"
  * )
  *   .cb("Option 1", async (ctx) => { await ctx.answerCallbackQuery("1"); })
@@ -22,14 +22,17 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   /**
    * Creates a new AudioMenuTemplate instance.
    *
-   * @param audio The InputMediaAudio object containing audio content
+   * @param audio The audio file as InputFile or URL string
    * @param messageText Optional text that will be used in the menu
    */
-  constructor(audio: InputMediaAudio, messageText?: string) {
+  constructor(audio: InputFile | string, messageText?: string) {
     super(messageText);
     this.audio = audio;
   }
 
   /** The audio media to be sent with the menu */
-  audio: InputMediaAudio;
+  audio: InputFile | string;
+
+  /** Differentiates the media type */
+  readonly kind = "audio" as const;
 }
