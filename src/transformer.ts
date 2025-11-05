@@ -14,7 +14,11 @@ import { isMessage } from "./typeguards/message.ts";
  * 2. Stores navigation history in navigationStorage
  * 2.1. If navigation history does not exist, it creates new history with the current menu
  * 2.2. If navigation history does exist, then we only push to navigation history if the menu sent is different from the latest menu in history
- * 3. Overrides message text with the Menu's messageText
+ * 3. Replaces the Menu's reply_markup with its inline keyboard
+ * 4. Sets text/caption based on the API method (only if menu.messageText is defined):
+ *    - For sendMessage and editMessageText: sets text
+ *    - For sendPhoto, sendVideo, sendAnimation, sendAudio, sendDocument, sendVoice, editMessageCaption, and editMessageMedia: sets caption
+ *    - For editMessageReplyMarkup and others: leaves text/caption unchanged
  *
  * @template C The grammY Context type
  * @param storageKeyPrefix The prefix used for storage keys
@@ -38,11 +42,28 @@ export function createMenuRegistryTransformer<C extends Context>(
     if ("reply_markup" in payload && isMenu(payload.reply_markup)) {
       const menu = payload.reply_markup;
       const inlineKeyboard = menu.inline_keyboard;
+
+      // Replace reply_markup with inline keyboard
       payload = {
         ...payload,
-        text: menu.messageText,
         reply_markup: { inline_keyboard: inlineKeyboard },
       };
+
+      // Replace text/caption based on the API method
+      if (menu.messageText) {
+        if (method === "sendMessage" || method === "editMessageText") {
+          payload = { ...payload, text: menu.messageText };
+        } else if (
+          method === "sendPhoto" || method === "sendVideo" ||
+          method === "sendAnimation" || method === "sendAudio" ||
+          method === "sendDocument" || method === "sendVoice" ||
+          method === "editMessageCaption" || method === "editMessageMedia"
+        ) {
+          payload = { ...payload, caption: menu.messageText };
+        }
+      }
+      // For editMessageReplyMarkup and other methods, don't set text/caption
+
       menusToStore.push(menu);
     }
 
