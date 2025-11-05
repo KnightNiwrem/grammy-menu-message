@@ -3,6 +3,15 @@
 - Deno-based library project; keep human-facing docs in `README.md` and use this file for agent directives.
 - Work remains agent-agnostic—assume no private credentials are available and prefer reproducible, scripted changes.
 
+## Development Status & Breaking Changes
+
+**This project is still in development and has not been released yet.**
+
+- **Do not** write backward-compatible code or deprecation paths.
+- **Do not** preserve legacy APIs or add compatibility shims.
+- **Simply make breaking changes** when refactoring or improving the codebase.
+- Focus on clean, modern implementations without worrying about migration paths.
+
 ## Environment & Tooling
 
 - Use the Deno version pinned in `deno.json`/`.dvmrc`; if absent, default to the latest stable release and record any new pin.
