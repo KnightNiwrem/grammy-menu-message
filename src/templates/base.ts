@@ -5,10 +5,10 @@ import type {
   LoginUrl,
   SwitchInlineQueryChosenChat,
   WebAppInfo,
-} from "./dep.ts";
-import type { MenuButton, MenuButtonHandler } from "./types.ts";
+} from "../dep.ts";
+import type { MenuButton, MenuButtonHandler } from "../types.ts";
 
-import { Menu } from "./menu.ts";
+import { Menu } from "../menu.ts";
 
 type Operation<C extends Context> =
   | { type: "nativeButton"; data: InlineKeyboardButton }
@@ -16,7 +16,7 @@ type Operation<C extends Context> =
   | { type: "row" };
 
 /**
- * MenuTemplate defines the structure of a menu using a builder pattern.
+ * BaseMenuTemplate defines the structure of a menu using a builder pattern.
  * Templates are reusable definitions that can be rendered multiple times into Menu instances.
  * Each render() call produces a fresh Menu with newly generated callback data.
  *
@@ -24,19 +24,19 @@ type Operation<C extends Context> =
  *
  * @example
  * ```typescript
- * const template = new MenuTemplate<Context>("Choose an option:")
+ * const template = new BaseMenuTemplate<Context>("Choose an option:")
  *   .cb("Option 1", async (ctx) => { await ctx.answerCallbackQuery("1"); })
  *   .cb("Option 2", async (ctx) => { await ctx.answerCallbackQuery("2"); })
  *   .row()
  *   .url("Visit Website", "https://example.com");
  * ```
  */
-export class MenuTemplate<C extends Context> {
+export class BaseMenuTemplate<C extends Context> {
   private operations: Operation<C>[] = [];
   messageText: string | undefined;
 
   /**
-   * Creates a new MenuTemplate instance.
+   * Creates a new BaseMenuTemplate instance.
    *
    * @param messageText Optional text that will be used to override sent message text payload in MenuRegistry's transformer
    */

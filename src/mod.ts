@@ -17,7 +17,7 @@ export type {
 } from "./types.ts";
 
 export { isMenu, Menu } from "./menu.ts";
-export { MenuTemplate } from "./template.ts";
+export { BaseMenuTemplate } from "./templates/base.ts";
 export { MenuRegistry } from "./registry.ts";
 export { createMenuRegistryTransformer } from "./transformer.ts";
 export { isInlineKeyboardButton } from "./typeguards/inline-keyboard-button.ts";
