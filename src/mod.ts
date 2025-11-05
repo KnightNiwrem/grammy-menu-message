@@ -17,7 +17,13 @@ export type {
 } from "./types.ts";
 
 export { isMenu, Menu } from "./menu.ts";
-export { BaseMenuTemplate } from "./templates/base.ts";
+export { BaseMenuTemplate, BaseMenuTemplate as MenuTemplate } from "./templates/base.ts";
+export type { BaseMenuTemplate as MenuTemplateType } from "./templates/base.ts";
+export { PhotoMenuTemplate } from "./templates/photo.ts";
+export { VideoMenuTemplate } from "./templates/video.ts";
+export { AnimationMenuTemplate } from "./templates/animation.ts";
+export { AudioMenuTemplate } from "./templates/audio.ts";
+export { DocumentMenuTemplate } from "./templates/document.ts";
 export { MenuRegistry } from "./registry.ts";
 export { createMenuRegistryTransformer } from "./transformer.ts";
 export { isInlineKeyboardButton } from "./typeguards/inline-keyboard-button.ts";
