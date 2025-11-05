@@ -1,4 +1,4 @@
-import type { Context, InputMediaVideo } from "../dep.ts";
+import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuTemplate } from "./base.ts";
 
 /**
@@ -10,7 +10,7 @@ import { BaseMenuTemplate } from "./base.ts";
  * @example
  * ```typescript
  * const videoMenu = new VideoMenuTemplate<Context>(
- *   { type: "video", media: "https://example.com/video.mp4" },
+ *   "https://example.com/video.mp4",
  *   "Choose an option:"
  * )
  *   .cb("Option 1", async (ctx) => { await ctx.answerCallbackQuery("1"); })
@@ -22,14 +22,18 @@ export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   /**
    * Creates a new VideoMenuTemplate instance.
    *
-   * @param video The InputMediaVideo object containing video content
+   * @param video The video file as InputFile or URL string
    * @param messageText Optional text that will be used in the menu
    */
-  constructor(video: InputMediaVideo, messageText?: string) {
+  constructor(video: InputFile | string, messageText?: string) {
     super(messageText);
     this.video = video;
+    this.kind = "video";
   }
 
   /** The video media to be sent with the menu */
-  video: InputMediaVideo;
+  video: InputFile | string;
+
+  /** Differentiates the media type */
+  kind: "video";
 }

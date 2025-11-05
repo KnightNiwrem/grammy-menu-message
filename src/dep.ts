@@ -2,11 +2,7 @@ export type { MiddlewareFn, NextFunction, StorageAdapter, Transformer } from "ht
 export type {
   CopyTextButton,
   InlineKeyboardButton,
-  InputMediaAnimation,
-  InputMediaAudio,
-  InputMediaDocument,
-  InputMediaPhoto,
-  InputMediaVideo,
+  InputFile,
   LoginUrl,
   Message,
   SwitchInlineQueryChosenChat,

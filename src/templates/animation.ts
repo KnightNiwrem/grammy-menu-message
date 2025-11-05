@@ -1,4 +1,4 @@
-import type { Context, InputMediaAnimation } from "../dep.ts";
+import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuTemplate } from "./base.ts";
 
 /**
@@ -10,7 +10,7 @@ import { BaseMenuTemplate } from "./base.ts";
  * @example
  * ```typescript
  * const animationMenu = new AnimationMenuTemplate<Context>(
- *   { type: "animation", media: "https://example.com/animation.gif" },
+ *   "https://example.com/animation.gif",
  *   "Choose an option:"
  * )
  *   .cb("Option 1", async (ctx) => { await ctx.answerCallbackQuery("1"); })
@@ -22,14 +22,18 @@ export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C
   /**
    * Creates a new AnimationMenuTemplate instance.
    *
-   * @param animation The InputMediaAnimation object containing animation content
+   * @param animation The animation file as InputFile or URL string
    * @param messageText Optional text that will be used in the menu
    */
-  constructor(animation: InputMediaAnimation, messageText?: string) {
+  constructor(animation: InputFile | string, messageText?: string) {
     super(messageText);
     this.animation = animation;
+    this.kind = "animation";
   }
 
   /** The animation media to be sent with the menu */
-  animation: InputMediaAnimation;
+  animation: InputFile | string;
+
+  /** Differentiates the media type */
+  kind: "animation";
 }

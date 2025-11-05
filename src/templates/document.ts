@@ -1,4 +1,4 @@
-import type { Context, InputMediaDocument } from "../dep.ts";
+import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuTemplate } from "./base.ts";
 
 /**
@@ -10,7 +10,7 @@ import { BaseMenuTemplate } from "./base.ts";
  * @example
  * ```typescript
  * const documentMenu = new DocumentMenuTemplate<Context>(
- *   { type: "document", media: "https://example.com/document.pdf" },
+ *   "https://example.com/document.pdf",
  *   "Choose an option:"
  * )
  *   .cb("Option 1", async (ctx) => { await ctx.answerCallbackQuery("1"); })
@@ -22,14 +22,18 @@ export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
   /**
    * Creates a new DocumentMenuTemplate instance.
    *
-   * @param document The InputMediaDocument object containing document content
+   * @param document The document file as InputFile or URL string
    * @param messageText Optional text that will be used in the menu
    */
-  constructor(document: InputMediaDocument, messageText?: string) {
+  constructor(document: InputFile | string, messageText?: string) {
     super(messageText);
     this.document = document;
+    this.kind = "document";
   }
 
   /** The document media to be sent with the menu */
-  document: InputMediaDocument;
+  document: InputFile | string;
+
+  /** Differentiates the media type */
+  kind: "document";
 }
