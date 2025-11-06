@@ -49,7 +49,7 @@ export abstract class BaseMenuTemplate<C extends Context> {
   /**
    * @internal
    * Sets the operations array for this template.
-   * 
+   *
    * **⚠️ WARNING:** This is an internal method. Do not use unless you know exactly what you are doing.
    * Directly manipulating operations can break the menu rendering system.
    * Use the public builder methods (`.cb()`, `.url()`, `.row()`, etc.) instead.
@@ -284,7 +284,9 @@ export abstract class BaseMenuTemplate<C extends Context> {
    * @param renderedMenuId Unique identifier for the rendered menu instance
    * @returns An object containing the constructed inline keyboard and menu keyboard matrices
    */
-  _renderKeyboards(renderedMenuId: string): { inlineKeyboard: InlineKeyboardButton[][], menuKeyboard: MenuButton<C>[][] } {
+  _renderKeyboards(
+    renderedMenuId: string,
+  ): { inlineKeyboard: InlineKeyboardButton[][]; menuKeyboard: MenuButton<C>[][] } {
     const inlineKeyboard: InlineKeyboardButton[][] = [];
     const menuKeyboard: MenuButton<C>[][] = [];
     let inlineRow: InlineKeyboardButton[] = [];

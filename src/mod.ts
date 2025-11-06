@@ -16,7 +16,7 @@ export type {
   RenderedMenuData,
 } from "./types.ts";
 
-export { BaseMenu, isBaseMenu } from "./menu/base.ts";
+export { BaseMenu, isMenu } from "./menu/base.ts";
 export { TextMenu } from "./menu/text.ts";
 export { PhotoMenu } from "./menu/photo.ts";
 export { VideoMenu } from "./menu/video.ts";

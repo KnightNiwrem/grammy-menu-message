@@ -33,7 +33,7 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    *
    * @param templateMenuId Identifier for the menu template this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
-  * @returns A TextMenu carrying the generated keyboard and optional text
+   * @returns A TextMenu carrying the generated keyboard and optional text
    */
   override render(templateMenuId: string, renderedMenuId: string): TextMenu<C> {
     const { inlineKeyboard, menuKeyboard } = super._renderKeyboards(renderedMenuId);

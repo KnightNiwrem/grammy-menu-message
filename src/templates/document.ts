@@ -44,15 +44,15 @@ export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
    *
    * @param templateMenuId Identifier for the menu template this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
-  * @returns A DocumentMenu carrying the generated keyboard and optional text
+   * @returns A DocumentMenu carrying the generated keyboard and optional text
    */
   override render(templateMenuId: string, renderedMenuId: string): DocumentMenu<C> {
-    const baseMenu = super.render(templateMenuId, renderedMenuId);
+    const { inlineKeyboard, menuKeyboard } = super._renderKeyboards(renderedMenuId);
     return new DocumentMenu(
       templateMenuId,
       renderedMenuId,
-      baseMenu.menuKeyboard,
-      baseMenu.inline_keyboard,
+      menuKeyboard,
+      inlineKeyboard,
       this.document,
       this.text,
     );

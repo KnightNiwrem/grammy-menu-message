@@ -44,15 +44,15 @@ export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    *
    * @param templateMenuId Identifier for the menu template this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
-  * @returns A PhotoMenu carrying the generated keyboard and optional text
+   * @returns A PhotoMenu carrying the generated keyboard and optional text
    */
   override render(templateMenuId: string, renderedMenuId: string): PhotoMenu<C> {
-    const baseMenu = super.render(templateMenuId, renderedMenuId);
+    const { inlineKeyboard, menuKeyboard } = super._renderKeyboards(renderedMenuId);
     return new PhotoMenu(
       templateMenuId,
       renderedMenuId,
-      baseMenu.menuKeyboard,
-      baseMenu.inline_keyboard,
+      menuKeyboard,
+      inlineKeyboard,
       this.photo,
       this.text,
     );

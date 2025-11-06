@@ -1,4 +1,4 @@
-export { BaseMenu, isBaseMenu } from "./base.ts";
+export { BaseMenu, isMenu } from "./base.ts";
 export { TextMenu } from "./text.ts";
 export { PhotoMenu } from "./photo.ts";
 export { VideoMenu } from "./video.ts";

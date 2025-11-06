@@ -2,7 +2,7 @@ import type { InlineKeyboardButton } from "./deps.ts";
 import type { MenuButton } from "../src/types.ts";
 
 import { Context, describe, expect, it } from "./deps.ts";
-import { BaseMenu, isBaseMenu, TextMenu } from "../src/menu/mod.ts";
+import { isMenu, TextMenu } from "../src/menu/mod.ts";
 
 describe("Menu", () => {
   const templateMenuId = "test-template";
@@ -10,7 +10,7 @@ describe("Menu", () => {
   const messageText = "Test message";
 
   describe("BaseMenu constructor", () => {
-    it("should create a BaseMenu with all properties", () => {
+    it("should create a TextMenu with all properties", () => {
       const menuKeyboard: MenuButton<Context>[][] = [[
         {
           text: "Button 1",
@@ -20,7 +20,7 @@ describe("Menu", () => {
       ]];
       const inlineKeyboard = [[{ text: "Button 1", callback_data: "test:0:0" }]];
 
-      const menu = new BaseMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
+      const menu = new TextMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
 
       expect(menu.templateMenuId).toBe(templateMenuId);
       expect(menu.renderedMenuId).toBe(renderedMenuId);
@@ -31,7 +31,7 @@ describe("Menu", () => {
       const menuKeyboard: MenuButton<Context>[][] = [];
       const inlineKeyboard: InlineKeyboardButton[][] = [];
 
-      const menu = new BaseMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
+      const menu = new TextMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
 
       // TypeScript should prevent reassignment, but verify properties exist
       expect(menu.templateMenuId).toBeDefined();
@@ -51,11 +51,11 @@ describe("Menu", () => {
       ]];
       const inlineKeyboard = [[{ text: "Button 1", callback_data: "test:0:0" }]];
 
-      const menu = new TextMenu(templateMenuId, renderedMenuId, messageText, menuKeyboard, inlineKeyboard);
+      const menu = new TextMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard, messageText);
 
       expect(menu.templateMenuId).toBe(templateMenuId);
       expect(menu.renderedMenuId).toBe(renderedMenuId);
-      expect(menu.messageText).toBe(messageText);
+      expect(menu.text).toBe(messageText);
       expect(menu.menuKeyboard).toBe(menuKeyboard);
       expect(menu.kind).toBe("text");
     });
@@ -76,14 +76,14 @@ describe("Menu", () => {
         { text: "Button 2", url: "https://example.com" },
       ]];
 
-      const menu = new BaseMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
+      const menu = new TextMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
 
       expect(menu.inline_keyboard).toBe(inlineKeyboard);
       expect(menu.inline_keyboard).toEqual(inlineKeyboard);
     });
 
     it("should return empty array for empty keyboard", () => {
-      const menu = new BaseMenu(templateMenuId, renderedMenuId, [], []);
+      const menu = new TextMenu(templateMenuId, renderedMenuId, [], []);
 
       expect(menu.inline_keyboard).toEqual([]);
     });
@@ -101,7 +101,7 @@ describe("Menu", () => {
         ],
       ];
 
-      const menu = new BaseMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
+      const menu = new TextMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
 
       expect(menu.inline_keyboard.length).toBe(2);
       expect(menu.inline_keyboard[0].length).toBe(1);
@@ -112,7 +112,7 @@ describe("Menu", () => {
   describe("Menu compatibility with grammY", () => {
     it("should have inline_keyboard property for reply_markup", () => {
       const inlineKeyboard = [[{ text: "Test", callback_data: "test" }]];
-      const menu = new BaseMenu(templateMenuId, renderedMenuId, [], inlineKeyboard);
+      const menu = new TextMenu(templateMenuId, renderedMenuId, [], inlineKeyboard);
 
       // Should be usable as reply_markup
       const replyMarkup = { inline_keyboard: menu.inline_keyboard };
@@ -120,49 +120,49 @@ describe("Menu", () => {
     });
   });
 
-  describe("isBaseMenu type guard", () => {
+  describe("isMenu type guard", () => {
     it("should return true for BaseMenu instances", () => {
-      const menu = new BaseMenu(templateMenuId, renderedMenuId, [], []);
-      expect(isBaseMenu(menu)).toBe(true);
+      const menu = new TextMenu(templateMenuId, renderedMenuId, [], []);
+      expect(isMenu(menu)).toBe(true);
     });
 
     it("should return true for TextMenu instances", () => {
-      const menu = new TextMenu(templateMenuId, renderedMenuId, messageText, [], []);
-      expect(isBaseMenu(menu)).toBe(true);
+      const menu = new TextMenu(templateMenuId, renderedMenuId, [], [], messageText);
+      expect(isMenu(menu)).toBe(true);
     });
 
     it("should return false for null", () => {
-      expect(isBaseMenu(null)).toBe(false);
+      expect(isMenu(null)).toBe(false);
     });
 
     it("should return false for undefined", () => {
-      expect(isBaseMenu(undefined)).toBe(false);
+      expect(isMenu(undefined)).toBe(false);
     });
 
     it("should return false for strings", () => {
-      expect(isBaseMenu("not a menu")).toBe(false);
+      expect(isMenu("not a menu")).toBe(false);
     });
 
     it("should return false for numbers", () => {
-      expect(isBaseMenu(42)).toBe(false);
+      expect(isMenu(42)).toBe(false);
     });
 
     it("should return false for plain objects", () => {
-      expect(isBaseMenu({ text: "button" })).toBe(false);
+      expect(isMenu({ text: "button" })).toBe(false);
     });
 
     it("should return false for objects with partial Menu properties", () => {
-      expect(isBaseMenu({
+      expect(isMenu({
         templateMenuId: "test",
         renderedMenuId: "test",
       })).toBe(false);
     });
 
     it("should return false for objects with wrong property types", () => {
-      expect(isBaseMenu({
+      expect(isMenu({
         templateMenuId: 123, // should be string
         renderedMenuId: "test",
-        messageText: "text",
+        text: "text",
         menuKeyboard: [],
         inline_keyboard: [],
       })).toBe(false);
@@ -175,17 +175,19 @@ describe("Menu", () => {
         menuKeyboard: [],
         inline_keyboard: [[{ text: "text", "callback_data": "data" }]],
       };
-      expect(isBaseMenu(menuLike)).toBe(true);
+      expect(isMenu(menuLike)).toBe(true);
     });
 
     it("should allow type narrowing in conditionals", () => {
-      const menu = new BaseMenu(templateMenuId, renderedMenuId, [], []);
+      const menu = new TextMenu(templateMenuId, renderedMenuId, [], []);
       const input: unknown = menu;
 
-      if (isBaseMenu(input)) {
-        // TypeScript should allow these accesses without type assertion
-        expect(input.templateMenuId).toBe(templateMenuId);
-        expect(input.renderedMenuId).toBe(renderedMenuId);
+      expect(isMenu(input)).toBe(true);
+      if (isMenu(input)) {
+        // The type guard confirms the object satisfies BaseMenu contract
+        const baseMenu = input as typeof menu;
+        expect(baseMenu.templateMenuId).toBe(templateMenuId);
+        expect(baseMenu.renderedMenuId).toBe(renderedMenuId);
       }
     });
   });
