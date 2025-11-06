@@ -36,12 +36,12 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   * @returns A TextMenu carrying the generated keyboard and optional text
    */
   override render(templateMenuId: string, renderedMenuId: string): TextMenu<C> {
-    const baseMenu = super.render(templateMenuId, renderedMenuId);
+    const { inlineKeyboard, menuKeyboard } = super._renderKeyboards(renderedMenuId);
     return new TextMenu(
       templateMenuId,
       renderedMenuId,
-      baseMenu.menuKeyboard,
-      baseMenu.inline_keyboard,
+      menuKeyboard,
+      inlineKeyboard,
       this.text,
     );
   }

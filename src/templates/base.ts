@@ -9,9 +9,8 @@ import type {
 import type { MenuButton, MenuButtonHandler } from "../types.ts";
 
 import { BaseMenu } from "../menu/base.ts";
-import { TextMenu } from "../menu/text.ts";
 
-type Operation<C extends Context> =
+export type Operation<C extends Context> =
   | { type: "nativeButton"; data: InlineKeyboardButton }
   | { type: "menuButton"; label: string; handler: MenuButtonHandler<C>; payload?: string }
   | { type: "row" };
@@ -34,7 +33,7 @@ type Operation<C extends Context> =
  * ```
  */
 export abstract class BaseMenuTemplate<C extends Context> {
-  private operations: Operation<C>[] = [];
+  protected operations: Operation<C>[] = [];
   /** Optional text payload that accompanies the rendered menu */
   text?: string;
 
@@ -45,6 +44,20 @@ export abstract class BaseMenuTemplate<C extends Context> {
    */
   constructor(text?: string) {
     this.text = text;
+  }
+
+  /**
+   * @internal
+   * Sets the operations array for this template.
+   * 
+   * **⚠️ WARNING:** This is an internal method. Do not use unless you know exactly what you are doing.
+   * Directly manipulating operations can break the menu rendering system.
+   * Use the public builder methods (`.cb()`, `.url()`, `.row()`, etc.) instead.
+   *
+   * @param operations The operations to set
+   */
+  _setOperations(operations: Operation<C>[]) {
+    this.operations = operations;
   }
 
   /**
@@ -261,17 +274,17 @@ export abstract class BaseMenuTemplate<C extends Context> {
   }
 
   /**
-   * Renders the template into a Menu with a fresh inline keyboard instance.
-  * Each render produces a unique Menu with automatically generated callback data
-  * based on button positions within the keyboard grid.
-  * The base implementation emits a TextMenu; media templates override this to
-  * attach their respective payloads while reusing the keyboard metadata.
+   * @internal
+   * Renders the operations into separate inline and menu keyboard structures.
    *
-   * @param templateMenuId Identifier for the menu template this was rendered from
-   * @param renderedMenuId Unique identifier for this specific rendered menu instance
-  * @returns A rendered TextMenu carrying the constructed keyboards
+   * **⚠️ WARNING:** This is an internal method. Do not use unless you know exactly what you are doing.
+   * This method is called internally during the render process. Direct usage may produce unexpected results
+   * or break the menu rendering pipeline. Use the public `render()` method instead.
+   *
+   * @param renderedMenuId Unique identifier for the rendered menu instance
+   * @returns An object containing the constructed inline keyboard and menu keyboard matrices
    */
-  render(templateMenuId: string, renderedMenuId: string): BaseMenu<C> {
+  _renderKeyboards(renderedMenuId: string): { inlineKeyboard: InlineKeyboardButton[][], menuKeyboard: MenuButton<C>[][] } {
     const inlineKeyboard: InlineKeyboardButton[][] = [];
     const menuKeyboard: MenuButton<C>[][] = [];
     let inlineRow: InlineKeyboardButton[] = [];
@@ -311,6 +324,19 @@ export abstract class BaseMenuTemplate<C extends Context> {
       menuKeyboard.push(menuRow);
     }
 
-    return new TextMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard, this.text);
+    return { inlineKeyboard, menuKeyboard };
   }
+
+  /**
+   * Renders the template into a Menu with a fresh inline keyboard instance.
+   * Each render produces a unique Menu with automatically generated callback data
+   * based on button positions within the keyboard grid.
+   * Subclasses override this abstract method to attach their respective media payloads
+   * while reusing the keyboard metadata generated from the operations.
+   *
+   * @param templateMenuId Identifier for the menu template this was rendered from
+   * @param renderedMenuId Unique identifier for this specific rendered menu instance
+   * @returns A rendered Menu instance with the constructed keyboards and optional media payload
+   */
+  abstract render(templateMenuId: string, renderedMenuId: string): BaseMenu<C>;
 }
