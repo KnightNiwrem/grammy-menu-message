@@ -2,7 +2,8 @@ import type { InlineKeyboardButton } from "./deps.ts";
 import type { MenuButton } from "../src/types.ts";
 
 import { Context, describe, expect, it } from "./deps.ts";
-import { isMenu, TextMenu } from "../src/menu/mod.ts";
+import { isMenu } from "../src/menu/base.ts";
+import { TextMenu } from "../src/menu/text.ts";
 
 describe("Menu", () => {
   const templateMenuId = "test-template";
