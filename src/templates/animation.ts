@@ -3,55 +3,58 @@ import { BaseMenuTemplate } from "./base.ts";
 import { AnimationMenu } from "../menu/animation.ts";
 
 /**
- * AnimationMenuTemplate extends BaseMenuTemplate to include an animation media field.
- * Used for creating menus with animation (GIF) content and inline keyboards.
+ * AnimationMenuTemplate orchestrates menus that deliver an animation alongside
+ * a keyboard built through the {@link BaseMenuTemplate} fluent API.
+ * Provide an {@link InputFile} or URL for the media and optionally enrich it
+ * with caption text via the constructor or {@link BaseMenuTemplate.addText}.
  *
  * @template C The grammY Context type
  *
  * @example
- * ```typescript
+ * ```ts
  * const animationMenu = new AnimationMenuTemplate<Context>(
  *   "https://example.com/animation.gif",
- *   "Choose an option:"
  * )
- *   .cb("Option 1", async (ctx) => { await ctx.answerCallbackQuery("1"); })
+ *   .addText("Choose an option:")
+ *   .cb("Option 1", async (ctx) => ctx.answerCallbackQuery("1"))
  *   .row()
  *   .url("Visit", "https://example.com");
  * ```
  */
 export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
+  /** The animation media to be sent with the menu */
+  animation: InputFile | string;
+
+  /** Differentiates what kind of MenuTemplate it is */
+  readonly kind = "animation" as const;
+
   /**
    * Creates a new AnimationMenuTemplate instance.
    *
    * @param animation The animation file as InputFile or URL string
-   * @param messageText Optional text that will be used in the menu
+   * @param text Optional caption sent alongside the rendered animation
    */
-  constructor(animation: InputFile | string, messageText?: string) {
-    super(messageText);
+  constructor(animation: InputFile | string, text?: string) {
+    super(text);
     this.animation = animation;
   }
-
-  /** The animation media to be sent with the menu */
-  animation: InputFile | string;
-
-  /** Differentiates the media type */
-  readonly kind = "animation" as const;
 
   /**
    * Renders the template into an AnimationMenu with a fresh inline keyboard instance.
    *
    * @param templateMenuId Identifier for the menu template this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
-   * @returns An AnimationMenu instance with newly constructed button arrays
+   * @returns An AnimationMenu carrying the generated keyboard and optional text
    */
   override render(templateMenuId: string, renderedMenuId: string): AnimationMenu<C> {
-    const baseMenu = super.render(templateMenuId, renderedMenuId);
+    const { inlineKeyboard, menuKeyboard } = super._renderKeyboards(renderedMenuId);
     return new AnimationMenu(
       templateMenuId,
       renderedMenuId,
+      menuKeyboard,
+      inlineKeyboard,
       this.animation,
-      baseMenu.menuKeyboard,
-      baseMenu.inline_keyboard,
+      this.text,
     );
   }
 }
