@@ -58,9 +58,9 @@ export function createMenuRegistryTransformer<C extends Context>(
       let messageText: string | undefined;
       let media: unknown;
 
-      // Extract messageText if present (Menu, media menus don't have this at root)
-      if ("messageText" in menu && typeof menu.messageText === "string") {
-        messageText = menu.messageText;
+      // Extract text if present (Menu, media menus don't have this at root)
+      if ("text" in menu && typeof menu.text === "string") {
+        messageText = menu.text;
       }
 
       // Extract media if present (PhotoMenu, VideoMenu, etc.)
