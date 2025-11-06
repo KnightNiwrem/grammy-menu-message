@@ -26,8 +26,8 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    * @param audio The audio file as InputFile or URL string
    * @param messageText Optional text that will be used in the menu
    */
-  constructor(audio: InputFile | string, messageText?: string) {
-    super(messageText);
+  constructor(audio: InputFile | string, text?: string) {
+    super(text);
     this.audio = audio;
   }
 
@@ -49,9 +49,10 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
     return new AudioMenu(
       templateMenuId,
       renderedMenuId,
-      this.audio,
       baseMenu.menuKeyboard,
       baseMenu.inline_keyboard,
+      this.audio,
+      this.text,
     );
   }
 }

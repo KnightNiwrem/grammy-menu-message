@@ -26,8 +26,8 @@ export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C
    * @param animation The animation file as InputFile or URL string
    * @param messageText Optional text that will be used in the menu
    */
-  constructor(animation: InputFile | string, messageText?: string) {
-    super(messageText);
+  constructor(animation: InputFile | string, text?: string) {
+    super(text);
     this.animation = animation;
   }
 
@@ -49,9 +49,10 @@ export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C
     return new AnimationMenu(
       templateMenuId,
       renderedMenuId,
-      this.animation,
       baseMenu.menuKeyboard,
       baseMenu.inline_keyboard,
+      this.animation,
+      this.text,
     );
   }
 }

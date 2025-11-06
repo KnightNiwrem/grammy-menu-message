@@ -4,7 +4,8 @@ import type { MenuButton } from "../types.ts";
 import { BaseMenu } from "./base.ts";
 
 /**
- * TextMenu represents a rendered text menu with message text.
+ * TextMenu represents a rendered menu that carries no media.
+ * The optional text payload is forwarded when present, but a TextMenu can also be purely keyboard-only.
  *
  * @template C The grammY Context type
  */
@@ -14,11 +15,11 @@ export class TextMenu<C extends Context> extends BaseMenu<C> {
   /**
    * Creates a new TextMenu instance.
    *
-   * @param templateMenuId Unique identifier for the menu template this was rendered from
-   * @param renderedMenuId Unique identifier for this specific rendered menu instance
-   * @param messageText The text content of the message
-   * @param menuKeyboard 2D array of button objects with full handler information for internal use
-   * @param inlineKeyboard The inline keyboard button layout for Telegram API compatibility
+   * @param templateMenuId Identifier of the template the menu was rendered from
+   * @param renderedMenuId Unique identifier for this rendered menu instance
+   * @param menuKeyboard Two-dimensional array of full button metadata for callback routing
+   * @param inlineKeyboard Inline keyboard layout that will be sent to Telegram
+   * @param text Optional text payload that accompanies the keyboard
    */
   constructor(
     templateMenuId: string,

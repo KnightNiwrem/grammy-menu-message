@@ -4,7 +4,7 @@ import type { MenuButton } from "../types.ts";
 import { BaseMenu } from "./base.ts";
 
 /**
- * AudioMenu represents a rendered audio menu with audio media.
+ * AudioMenu represents a rendered menu that sends audio along with optional text.
  *
  * @template C The grammY Context type
  */
@@ -14,11 +14,12 @@ export class AudioMenu<C extends Context> extends BaseMenu<C> {
   /**
    * Creates a new AudioMenu instance.
    *
-   * @param templateMenuId Unique identifier for the menu template this was rendered from
-   * @param renderedMenuId Unique identifier for this specific rendered menu instance
-   * @param audio The audio file as InputFile or URL string
-   * @param menuKeyboard 2D array of button objects with full handler information for internal use
-   * @param inlineKeyboard The inline keyboard button layout for Telegram API compatibility
+   * @param templateMenuId Identifier of the template the menu was rendered from
+   * @param renderedMenuId Unique identifier for this rendered menu instance
+   * @param menuKeyboard Two-dimensional array of full button metadata for callback routing
+   * @param inlineKeyboard Inline keyboard layout that will be sent to Telegram
+   * @param audio Audio file or URL that Telegram will deliver with the menu
+   * @param text Optional caption text to accompany the audio
    */
   constructor(
     templateMenuId: string,

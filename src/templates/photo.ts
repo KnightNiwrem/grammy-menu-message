@@ -26,8 +26,8 @@ export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    * @param photo The photo file as InputFile or URL string
    * @param messageText Optional text that will be used in the menu
    */
-  constructor(photo: InputFile | string, messageText?: string) {
-    super(messageText);
+  constructor(photo: InputFile | string, text?: string) {
+    super(text);
     this.photo = photo;
   }
 
@@ -49,9 +49,10 @@ export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
     return new PhotoMenu(
       templateMenuId,
       renderedMenuId,
-      this.photo,
       baseMenu.menuKeyboard,
       baseMenu.inline_keyboard,
+      this.photo,
+      this.text,
     );
   }
 }

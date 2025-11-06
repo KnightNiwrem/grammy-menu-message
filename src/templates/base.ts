@@ -9,6 +9,7 @@ import type {
 import type { MenuButton, MenuButtonHandler } from "../types.ts";
 
 import { BaseMenu } from "../menu/base.ts";
+import { TextMenu } from "../menu/text.ts";
 
 type Operation<C extends Context> =
   | { type: "nativeButton"; data: InlineKeyboardButton }
@@ -31,17 +32,17 @@ type Operation<C extends Context> =
  *   .url("Visit Website", "https://example.com");
  * ```
  */
-export class BaseMenuTemplate<C extends Context> {
+export abstract class BaseMenuTemplate<C extends Context> {
   private operations: Operation<C>[] = [];
-  messageText: string | undefined;
+  text?: string;
 
   /**
    * Creates a new BaseMenuTemplate instance.
    *
    * @param messageText Optional text that will be used to override sent message text payload in MenuRegistry's transformer
    */
-  constructor(messageText?: string) {
-    this.messageText = messageText;
+  constructor(text?: string) {
+    this.text = text;
   }
 
   /**
@@ -50,8 +51,8 @@ export class BaseMenuTemplate<C extends Context> {
    * @param messageText The text to set, or undefined to clear it
    * @returns this for method chaining
    */
-  text(messageText: string | undefined): this {
-    this.messageText = messageText;
+  addText(text: string): this {
+    this.text = text;
     return this;
   }
 
@@ -306,6 +307,6 @@ export class BaseMenuTemplate<C extends Context> {
       menuKeyboard.push(menuRow);
     }
 
-    return new BaseMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
+    return new TextMenu(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard, this.text);
   }
 }

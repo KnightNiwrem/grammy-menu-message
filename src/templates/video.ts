@@ -26,8 +26,8 @@ export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    * @param video The video file as InputFile or URL string
    * @param messageText Optional text that will be used in the menu
    */
-  constructor(video: InputFile | string, messageText?: string) {
-    super(messageText);
+  constructor(video: InputFile | string, text?: string) {
+    super(text);
     this.video = video;
   }
 
@@ -49,9 +49,10 @@ export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
     return new VideoMenu(
       templateMenuId,
       renderedMenuId,
-      this.video,
       baseMenu.menuKeyboard,
       baseMenu.inline_keyboard,
+      this.video,
+      this.text,
     );
   }
 }

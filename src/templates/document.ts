@@ -26,8 +26,8 @@ export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
    * @param document The document file as InputFile or URL string
    * @param messageText Optional text that will be used in the menu
    */
-  constructor(document: InputFile | string, messageText?: string) {
-    super(messageText);
+  constructor(document: InputFile | string, text?: string) {
+    super(text);
     this.document = document;
   }
 
@@ -49,9 +49,10 @@ export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
     return new DocumentMenu(
       templateMenuId,
       renderedMenuId,
-      this.document,
       baseMenu.menuKeyboard,
       baseMenu.inline_keyboard,
+      this.document,
+      this.text,
     );
   }
 }

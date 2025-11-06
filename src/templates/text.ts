@@ -3,16 +3,14 @@ import { BaseMenuTemplate } from "./base.ts";
 import { TextMenu } from "../menu/text.ts";
 
 /**
- * TextMenuTemplate extends BaseMenuTemplate to include message text.
- * Used for creating menus with text content and inline keyboards.
+ * TextMenuTemplate extends BaseMenuTemplate for menus without media.
+ * Optional message text can be supplied; when omitted, only the keyboard is rendered.
  *
  * @template C The grammY Context type
  *
  * @example
  * ```typescript
- * const textMenu = new TextMenuTemplate<Context>(
- *   "Choose an option:"
- * )
+ * const textMenu = new TextMenuTemplate<Context>()
  *   .cb("Option 1", async (ctx) => { await ctx.answerCallbackQuery("1"); })
  *   .row()
  *   .url("Visit", "https://example.com");
@@ -22,10 +20,10 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   /**
    * Creates a new TextMenuTemplate instance.
    *
-   * @param messageText The text content of the menu message
+   * @param messageText Optional text content to be sent with the menu
    */
-  constructor(messageText: string) {
-    super(messageText);
+  constructor(text?: string) {
+    super(text);
   }
 
   /**
@@ -40,9 +38,9 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
     return new TextMenu(
       templateMenuId,
       renderedMenuId,
-      this.messageText!,
       baseMenu.menuKeyboard,
       baseMenu.inline_keyboard,
+      this.text,
     );
   }
 }
