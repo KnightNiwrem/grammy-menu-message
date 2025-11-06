@@ -24,7 +24,7 @@ export type Operation<C extends Context> =
  *
  * @example
  * ```ts
- * const template = new TextMenuTemplate<Context>()
+ * const template = new MenuTemplate<Context>()
  *   .addText("Choose an option:")
  *   .cb("Option 1", async (ctx) => ctx.answerCallbackQuery("1"))
  *   .cb("Option 2", async (ctx) => ctx.answerCallbackQuery("2"))
