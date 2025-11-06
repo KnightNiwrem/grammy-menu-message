@@ -23,9 +23,10 @@ export class AudioMenu<C extends Context> extends BaseMenu<C> {
   constructor(
     templateMenuId: string,
     renderedMenuId: string,
-    public readonly audio: InputFile | string,
     menuKeyboard: MenuButton<C>[][],
     inlineKeyboard: InlineKeyboardButton[][],
+    public readonly audio: InputFile | string,
+    public readonly text?: string,
   ) {
     super(templateMenuId, renderedMenuId, menuKeyboard, inlineKeyboard);
   }

@@ -11,7 +11,7 @@ import { isInlineKeyboard } from "../typeguards/inline-keyboard.ts";
  *
  * @template C The grammY Context type
  */
-export class BaseMenu<C extends Context> {
+export abstract class BaseMenu<C extends Context> {
   /**
    * Creates a new BaseMenu instance.
    *
@@ -54,16 +54,19 @@ export class BaseMenu<C extends Context> {
  * }
  * ```
  */
-export function isBaseMenu<C extends Context>(value: unknown): value is BaseMenu<C> {
+export function isMenu<C extends Context>(value: unknown): value is BaseMenu<C> {
   if (value === null || typeof value !== "object") {
     return false;
   }
 
-  const obj = value as Record<string, unknown>;
   return (
-    typeof obj.templateMenuId === "string" &&
-    typeof obj.renderedMenuId === "string" &&
-    Array.isArray(obj.menuKeyboard) &&
-    isInlineKeyboard(obj.inline_keyboard)
+    "templateMenuId" in value && 
+    typeof value.templateMenuId === "string" &&
+    "renderedMenuId" in value && 
+    typeof value.renderedMenuId === "string" &&
+    "menuKeyboard" in value &&
+    Array.isArray(value.menuKeyboard) &&
+    "inline_keyboard" in value && 
+    isInlineKeyboard(value.inline_keyboard)
   );
 }
