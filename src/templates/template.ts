@@ -8,7 +8,7 @@ import { DocumentMenuTemplate } from "./document.ts";
 import { AnimationMenuTemplate } from "./animation.ts";
 
 /**
- * TextMenuTemplate is the plain template variant that renders menus without
+ * MenuTemplate is the plain template variant that renders menus without
  * media attachments. Supply optional text via the constructor or
  * {@link BaseMenuTemplate.addText}; when omitted, the menu becomes keyboard-only.
  *
@@ -16,19 +16,19 @@ import { AnimationMenuTemplate } from "./animation.ts";
  *
  * @example
  * ```ts
- * const textMenu = new TextMenuTemplate<Context>()
+ * const menu = new MenuTemplate<Context>()
  *   .addText("Choose an option:")
  *   .cb("Option 1", async (ctx) => ctx.answerCallbackQuery("1"))
  *   .row()
  *   .url("Visit", "https://example.com");
  * ```
  */
-export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
+export class MenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   /** Differentiates what kind of MenuTemplate it is */
   readonly kind = "text" as const;
 
   /**
-   * Creates a new TextMenuTemplate instance.
+   * Creates a new MenuTemplate instance.
    *
    * @param text Optional text content to be sent with the menu
    */
