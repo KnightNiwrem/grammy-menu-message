@@ -17,7 +17,7 @@ export type {
 } from "./types.ts";
 
 export { BaseMenu, isMenu } from "./menu/base.ts";
-export { TextMenu } from "./menu/text.ts";
+export { Menu } from "./menu/menu.ts";
 export { PhotoMenu } from "./menu/photo.ts";
 export { VideoMenu } from "./menu/video.ts";
 export { AnimationMenu } from "./menu/animation.ts";

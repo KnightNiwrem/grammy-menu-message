@@ -4,16 +4,16 @@ import type { MenuButton } from "../types.ts";
 import { BaseMenu } from "./base.ts";
 
 /**
- * TextMenu represents a rendered menu that carries no media.
- * The optional text payload is forwarded when present, but a TextMenu can also be purely keyboard-only.
+ * Menu represents a rendered menu that carries no media.
+ * The optional text payload is forwarded when present, but a Menu can also be purely keyboard-only.
  *
  * @template C The grammY Context type
  */
-export class TextMenu<C extends Context> extends BaseMenu<C> {
+export class Menu<C extends Context> extends BaseMenu<C> {
   readonly kind = "text" as const;
 
   /**
-   * Creates a new TextMenu instance.
+   * Creates a new Menu instance.
    *
    * @param templateMenuId Identifier of the template the menu was rendered from
    * @param renderedMenuId Unique identifier for this rendered menu instance

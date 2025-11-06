@@ -1,6 +1,6 @@
 import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuTemplate } from "./base.ts";
-import { TextMenu } from "../menu/text.ts";
+import { Menu } from "../menu/menu.ts";
 import { AudioMenuTemplate } from "./audio.ts";
 import { PhotoMenuTemplate } from "./photo.ts";
 import { VideoMenuTemplate } from "./video.ts";
@@ -37,15 +37,15 @@ export class MenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   }
 
   /**
-   * Renders the template into a TextMenu with a fresh inline keyboard instance.
+   * Renders the template into a Menu with a fresh inline keyboard instance.
    *
    * @param templateMenuId Identifier for the menu template this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
-   * @returns A TextMenu carrying the generated keyboard and optional text
+   * @returns A Menu carrying the generated keyboard and optional text
    */
-  override render(templateMenuId: string, renderedMenuId: string): TextMenu<C> {
+  override render(templateMenuId: string, renderedMenuId: string): Menu<C> {
     const { inlineKeyboard, menuKeyboard } = super._renderKeyboards(renderedMenuId);
-    return new TextMenu(
+    return new Menu(
       templateMenuId,
       renderedMenuId,
       menuKeyboard,
