@@ -22,6 +22,12 @@ import { VideoMenu } from "../menu/video.ts";
  * ```
  */
 export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
+  /** The video media to be sent with the menu */
+  video: InputFile | string;
+
+  /** Differentiates what kind of MenuTemplate it is */
+  readonly kind = "video" as const;
+
   /**
    * Creates a new VideoMenuTemplate instance.
    *
@@ -32,12 +38,6 @@ export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
     super(text);
     this.video = video;
   }
-
-  /** The video media to be sent with the menu */
-  video: InputFile | string;
-
-  /** Differentiates the media type */
-  readonly kind = "video" as const;
 
   /**
    * Renders the template into a VideoMenu with a fresh inline keyboard instance.

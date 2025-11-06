@@ -22,6 +22,12 @@ import { AnimationMenu } from "../menu/animation.ts";
  * ```
  */
 export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
+  /** The animation media to be sent with the menu */
+  animation: InputFile | string;
+
+  /** Differentiates what kind of MenuTemplate it is */
+  readonly kind = "animation" as const;
+
   /**
    * Creates a new AnimationMenuTemplate instance.
    *
@@ -32,12 +38,6 @@ export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C
     super(text);
     this.animation = animation;
   }
-
-  /** The animation media to be sent with the menu */
-  animation: InputFile | string;
-
-  /** Differentiates the media type */
-  readonly kind = "animation" as const;
 
   /**
    * Renders the template into an AnimationMenu with a fresh inline keyboard instance.

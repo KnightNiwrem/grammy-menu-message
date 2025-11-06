@@ -24,6 +24,9 @@ import { AnimationMenuTemplate } from "./animation.ts";
  * ```
  */
 export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
+  /** Differentiates what kind of MenuTemplate it is */
+  readonly kind = "text" as const;
+
   /**
    * Creates a new TextMenuTemplate instance.
    *

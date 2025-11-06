@@ -21,6 +21,12 @@ import { AudioMenu } from "../menu/audio.ts";
  * ```
  */
 export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
+  /** The audio media to be sent with the menu */
+  audio: InputFile | string;
+
+  /** Differentiates what kind of MenuTemplate it is */
+  readonly kind = "audio" as const;
+
   /**
    * Creates a new AudioMenuTemplate instance.
    *
@@ -31,12 +37,6 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
     super(text);
     this.audio = audio;
   }
-
-  /** The audio media to be sent with the menu */
-  audio: InputFile | string;
-
-  /** Differentiates the media type */
-  readonly kind = "audio" as const;
 
   /**
    * Renders the template into an AudioMenu with a fresh inline keyboard instance.

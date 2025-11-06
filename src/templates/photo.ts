@@ -22,6 +22,12 @@ import { PhotoMenu } from "../menu/photo.ts";
  * ```
  */
 export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
+  /** The photo media to be sent with the menu */
+  photo: InputFile | string;
+
+  /** Differentiates what kind of MenuTemplate it is */
+  readonly kind = "photo" as const;
+
   /**
    * Creates a new PhotoMenuTemplate instance.
    *
@@ -32,12 +38,6 @@ export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
     super(text);
     this.photo = photo;
   }
-
-  /** The photo media to be sent with the menu */
-  photo: InputFile | string;
-
-  /** Differentiates the media type */
-  readonly kind = "photo" as const;
 
   /**
    * Renders the template into a PhotoMenu with a fresh inline keyboard instance.

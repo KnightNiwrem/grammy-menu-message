@@ -22,6 +22,12 @@ import { DocumentMenu } from "../menu/document.ts";
  * ```
  */
 export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
+  /** The document media to be sent with the menu */
+  document: InputFile | string;
+
+  /** Differentiates what kind of MenuTemplate it is */
+  readonly kind = "document" as const;
+
   /**
    * Creates a new DocumentMenuTemplate instance.
    *
@@ -32,12 +38,6 @@ export class DocumentMenuTemplate<C extends Context> extends BaseMenuTemplate<C>
     super(text);
     this.document = document;
   }
-
-  /** The document media to be sent with the menu */
-  document: InputFile | string;
-
-  /** Differentiates the media type */
-  readonly kind = "document" as const;
 
   /**
    * Renders the template into a DocumentMenu with a fresh inline keyboard instance.
