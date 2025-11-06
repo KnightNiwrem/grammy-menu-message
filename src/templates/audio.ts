@@ -3,18 +3,19 @@ import { BaseMenuTemplate } from "./base.ts";
 import { AudioMenu } from "../menu/audio.ts";
 
 /**
- * AudioMenuTemplate extends BaseMenuTemplate to include an audio media field.
- * Used for creating menus with audio content and inline keyboards.
+ * AudioMenuTemplate wraps the generic menu builder with audio media support.
+ * Pass in an {@link InputFile} or URL pointing to the audio track and optionally
+ * add caption text through the constructor or {@link BaseMenuTemplate.addText}.
  *
  * @template C The grammY Context type
  *
  * @example
- * ```typescript
+ * ```ts
  * const audioMenu = new AudioMenuTemplate<Context>(
  *   "https://example.com/audio.mp3",
- *   "Choose an option:"
  * )
- *   .cb("Option 1", async (ctx) => { await ctx.answerCallbackQuery("1"); })
+ *   .addText("Choose an option:")
+ *   .cb("Option 1", async (ctx) => ctx.answerCallbackQuery("1"))
  *   .row()
  *   .url("Visit", "https://example.com");
  * ```
@@ -24,7 +25,7 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    * Creates a new AudioMenuTemplate instance.
    *
    * @param audio The audio file as InputFile or URL string
-   * @param messageText Optional text that will be used in the menu
+   * @param text Optional caption sent alongside the rendered audio
    */
   constructor(audio: InputFile | string, text?: string) {
     super(text);
@@ -42,7 +43,7 @@ export class AudioMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
    *
    * @param templateMenuId Identifier for the menu template this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
-   * @returns An AudioMenu instance with newly constructed button arrays
+  * @returns An AudioMenu carrying the generated keyboard and optional text
    */
   override render(templateMenuId: string, renderedMenuId: string): AudioMenu<C> {
     const baseMenu = super.render(templateMenuId, renderedMenuId);
