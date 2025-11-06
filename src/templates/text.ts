@@ -1,6 +1,11 @@
-import type { Context } from "../dep.ts";
+import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuTemplate } from "./base.ts";
 import { TextMenu } from "../menu/text.ts";
+import { AudioMenuTemplate } from "./audio.ts";
+import { PhotoMenuTemplate } from "./photo.ts";
+import { VideoMenuTemplate } from "./video.ts";
+import { DocumentMenuTemplate } from "./document.ts";
+import { AnimationMenuTemplate } from "./animation.ts";
 
 /**
  * TextMenuTemplate is the plain template variant that renders menus without
@@ -44,5 +49,70 @@ export class TextMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
       inlineKeyboard,
       this.text,
     );
+  }
+
+  /**
+   * Converts this text menu into an audio menu template by adding audio media.
+   * The existing text and keyboard configuration are preserved.
+   *
+   * @param audio The audio file as InputFile or URL string
+   * @returns A new AudioMenuTemplate with the same keyboard configuration and text
+   */
+  audio(audio: InputFile | string): AudioMenuTemplate<C> {
+    const audioMenuTemplate = new AudioMenuTemplate<C>(audio, this.text);
+    audioMenuTemplate._setOperations(this.operations);
+    return audioMenuTemplate;
+  }
+
+  /**
+   * Converts this text menu into a photo menu template by adding photo media.
+   * The existing text and keyboard configuration are preserved.
+   *
+   * @param photo The photo file as InputFile or URL string
+   * @returns A new PhotoMenuTemplate with the same keyboard configuration and text
+   */
+  photo(photo: InputFile | string): PhotoMenuTemplate<C> {
+    const photoMenuTemplate = new PhotoMenuTemplate<C>(photo, this.text);
+    photoMenuTemplate._setOperations(this.operations);
+    return photoMenuTemplate;
+  }
+
+  /**
+   * Converts this text menu into a video menu template by adding video media.
+   * The existing text and keyboard configuration are preserved.
+   *
+   * @param video The video file as InputFile or URL string
+   * @returns A new VideoMenuTemplate with the same keyboard configuration and text
+   */
+  video(video: InputFile | string): VideoMenuTemplate<C> {
+    const videoMenuTemplate = new VideoMenuTemplate<C>(video, this.text);
+    videoMenuTemplate._setOperations(this.operations);
+    return videoMenuTemplate;
+  }
+
+  /**
+   * Converts this text menu into a document menu template by adding document media.
+   * The existing text and keyboard configuration are preserved.
+   *
+   * @param document The document file as InputFile or URL string
+   * @returns A new DocumentMenuTemplate with the same keyboard configuration and text
+   */
+  document(document: InputFile | string): DocumentMenuTemplate<C> {
+    const documentMenuTemplate = new DocumentMenuTemplate<C>(document, this.text);
+    documentMenuTemplate._setOperations(this.operations);
+    return documentMenuTemplate;
+  }
+
+  /**
+   * Converts this text menu into an animation menu template by adding animation media.
+   * The existing text and keyboard configuration are preserved.
+   *
+   * @param animation The animation file as InputFile or URL string
+   * @returns A new AnimationMenuTemplate with the same keyboard configuration and text
+   */
+  animation(animation: InputFile | string): AnimationMenuTemplate<C> {
+    const animationMenuTemplate = new AnimationMenuTemplate<C>(animation, this.text);
+    animationMenuTemplate._setOperations(this.operations);
+    return animationMenuTemplate;
   }
 }
