@@ -44,11 +44,31 @@ const webAppMenu = new MenuTemplate("🌐 Web Apps")
     await ctx.editMessageText("Main Menu", { reply_markup: menu });
   });
 
-// Menu with copy text button
+// Menu with copy text button - uses callbacks to access bot info at runtime
 const utilsMenu = new MenuTemplate("🔧 Utilities")
-  .copyText("Copy Bot ID", `Bot ID: ${bot.botInfo.id}`)
+  .cb("Copy Bot ID", async (ctx) => {
+    const botId = ctx.me.id;
+    await ctx.reply(`Bot ID: ${botId}`, {
+      reply_markup: {
+        inline_keyboard: [[{
+          text: "Copy to Clipboard",
+          copy_text: { text: `${botId}` },
+        }]],
+      },
+    });
+  })
   .row()
-  .copyText("Copy Username", `@${bot.botInfo.username}`)
+  .cb("Copy Username", async (ctx) => {
+    const username = ctx.me.username;
+    await ctx.reply(`Username: @${username}`, {
+      reply_markup: {
+        inline_keyboard: [[{
+          text: "Copy to Clipboard",
+          copy_text: { text: `@${username}` },
+        }]],
+      },
+    });
+  })
   .row()
   .cb("Show QR Code", async (ctx) => {
     await ctx.reply("QR code generation not implemented in this example");
@@ -106,9 +126,7 @@ const mainMenu = new MenuTemplate("🎯 Advanced Features\n\nExplore different b
   .row()
   .url("External Link", "https://grammy.dev")
   .row()
-  .cb("Raw Callback Example", async (ctx) => {
-    await ctx.reply("This uses a raw callback handler!");
-  });
+  .rawCb("Raw Callback Example", "raw_callback");
 
 registry.register("main", mainMenu);
 registry.register("share", shareMenu);
