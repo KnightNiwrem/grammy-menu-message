@@ -4,7 +4,7 @@
  * Run: BOT_TOKEN=your_token deno run --allow-env --allow-net examples/navigation.ts
  */
 import { Bot } from "./deps.ts";
-import { MenuRegistry, MenuTemplate } from "../src/mod.ts";
+import { MenuBuilder, MenuRegistry } from "../src/mod.ts";
 
 const token = Deno.env.get("BOT_TOKEN");
 if (!token) {
@@ -16,7 +16,7 @@ const bot = new Bot(token);
 const registry = new MenuRegistry();
 
 // Settings submenu
-const settingsMenu = new MenuTemplate("⚙️ Settings")
+const settingsMenu = new MenuBuilder("⚙️ Settings")
   .cb("🔔 Notifications", async (ctx) => {
     await ctx.reply("Notifications: ON");
   })
@@ -34,7 +34,7 @@ const settingsMenu = new MenuTemplate("⚙️ Settings")
   });
 
 // Help submenu
-const helpMenu = new MenuTemplate("❓ Help & Support")
+const helpMenu = new MenuBuilder("❓ Help & Support")
   .cb("📖 Documentation", async (ctx) => {
     await ctx.reply("Visit https://grammy.dev for documentation");
   })
@@ -50,7 +50,7 @@ const helpMenu = new MenuTemplate("❓ Help & Support")
   });
 
 // Profile submenu
-const profileMenu = new MenuTemplate("👤 Profile")
+const profileMenu = new MenuBuilder("👤 Profile")
   .cb("📝 Edit Name", async (ctx) => {
     await ctx.reply("Name editing not implemented in this example");
   })
@@ -64,7 +64,7 @@ const profileMenu = new MenuTemplate("👤 Profile")
   });
 
 // Main menu
-const mainMenu = new MenuTemplate("🏠 Main Menu\n\nChoose a section:")
+const mainMenu = new MenuBuilder("🏠 Main Menu\n\nChoose a section:")
   .cb("⚙️ Settings", async (ctx) => {
     const menu = registry.menu("settings");
     await ctx.editMessageText("Settings menu", { reply_markup: menu });

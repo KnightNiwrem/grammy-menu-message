@@ -4,7 +4,7 @@
  * Run: BOT_TOKEN=your_token deno run --allow-env --allow-net examples/advanced.ts
  */
 import { Bot } from "./deps.ts";
-import { MenuRegistry, MenuTemplate } from "../src/mod.ts";
+import { MenuBuilder, MenuRegistry } from "../src/mod.ts";
 
 const token = Deno.env.get("BOT_TOKEN");
 if (!token) {
@@ -16,7 +16,7 @@ const bot = new Bot(token);
 const registry = new MenuRegistry();
 
 // Menu demonstrating inline query buttons
-const shareMenu = new MenuTemplate("📤 Share Options")
+const shareMenu = new MenuBuilder("📤 Share Options")
   .switchInline("Share in Another Chat", "Check out this bot!")
   .row()
   .switchInlineCurrent("Share in This Chat", "Amazing bot: ")
@@ -34,7 +34,7 @@ const shareMenu = new MenuTemplate("📤 Share Options")
   });
 
 // Menu with Web App button
-const webAppMenu = new MenuTemplate("🌐 Web Apps")
+const webAppMenu = new MenuBuilder("🌐 Web Apps")
   .webApp("Open Calculator", "https://example.com/calculator")
   .row()
   .webApp("Open Game", "https://example.com/game")
@@ -45,7 +45,7 @@ const webAppMenu = new MenuTemplate("🌐 Web Apps")
   });
 
 // Menu with copy text button - uses callbacks to access bot info at runtime
-const utilsMenu = new MenuTemplate("🔧 Utilities")
+const utilsMenu = new MenuBuilder("🔧 Utilities")
   .cb("Copy Bot ID", async (ctx) => {
     const botId = ctx.me.id;
     await ctx.reply(`Bot ID: ${botId}`, {
@@ -81,7 +81,7 @@ const utilsMenu = new MenuTemplate("🔧 Utilities")
 
 // Dynamic menu with state
 let counter = 0;
-const counterMenu = new MenuTemplate()
+const counterMenu = new MenuBuilder()
   .cb("➕ Increment", async (ctx) => {
     counter++;
     const menu = registry.menu("counter");
@@ -105,7 +105,7 @@ const counterMenu = new MenuTemplate()
   });
 
 // Main menu
-const mainMenu = new MenuTemplate("🎯 Advanced Features\n\nExplore different button types:")
+const mainMenu = new MenuBuilder("🎯 Advanced Features\n\nExplore different button types:")
   .cb("📤 Sharing Options", async (ctx) => {
     const menu = registry.menu("share");
     await ctx.editMessageText("Sharing options", { reply_markup: menu });

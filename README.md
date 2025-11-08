@@ -4,7 +4,7 @@ A lightweight, type-safe menu system for [grammY](https://grammy.dev) Telegram b
 
 ## Features
 
-- **Declarative Menu Building** — Define menu templates using a chainable builder API
+- **Declarative Menu Building** — Define menu builders using a chainable builder API
 - **Automatic Callback Routing** — Callbacks are handled internally with zero manual routing code
 - **Media Support** — Create menus with photos, videos, animations, audio, or documents
 - **Navigation History** — Built-in tracking of menu navigation per message
@@ -15,7 +15,7 @@ A lightweight, type-safe menu system for [grammY](https://grammy.dev) Telegram b
 ## Installation
 
 ```ts
-import { MenuRegistry, MenuTemplate } from "jsr:@your-scope/grammy-menu-message";
+import { MenuBuilder, MenuRegistry } from "jsr:@your-scope/grammy-menu-message";
 ```
 
 > **Note:** This library is currently in development and not yet published to JSR.
@@ -24,13 +24,13 @@ import { MenuRegistry, MenuTemplate } from "jsr:@your-scope/grammy-menu-message"
 
 ```ts
 import { Bot } from "https://lib.deno.dev/x/grammy@v1/mod.ts";
-import { MenuRegistry, MenuTemplate } from "./src/mod.ts";
+import { MenuBuilder, MenuRegistry } from "./src/mod.ts";
 
 const bot = new Bot(Deno.env.get("BOT_TOKEN")!);
 const registry = new MenuRegistry();
 
-// Define a menu template
-const mainMenu = new MenuTemplate("Welcome! Choose an option:")
+// Define a menu builder
+const mainMenu = new MenuBuilder("Welcome! Choose an option:")
   .cb("Say Hello", async (ctx) => {
     await ctx.reply("Hello! 👋");
   })
@@ -41,7 +41,7 @@ const mainMenu = new MenuTemplate("Welcome! Choose an option:")
   .url("GitHub", "https://github.com")
   .url("Documentation", "https://grammy.dev");
 
-// Register the template
+// Register the builder
 registry.register("main", mainMenu);
 
 // Use the registry middleware
@@ -58,9 +58,9 @@ bot.start();
 
 ## Core Concepts
 
-### MenuTemplate
+### MenuBuilder
 
-A `MenuTemplate` is a declarative builder for defining menu structure. It supports:
+A `MenuBuilder` is a declarative builder for defining menu structure. It supports:
 
 - **Callback buttons** (`.cb()`) — Buttons with handler functions
 - **URL buttons** (`.url()`) — Direct links to websites
@@ -71,9 +71,9 @@ A `MenuTemplate` is a declarative builder for defining menu structure. It suppor
 
 ### MenuRegistry
 
-The `MenuRegistry` manages menu templates and handles callback routing:
+The `MenuRegistry` manages menu builders and handles callback routing:
 
-- **Register templates** — `registry.register("id", template)`
+- **Register builders** — `registry.register("id", builder)`
 - **Render menus** — `registry.menu("id")` creates a new menu instance
 - **Middleware** — `registry.middleware()` handles callbacks automatically
 - **Storage** — Configurable storage adapters for persistence across restarts
@@ -82,12 +82,12 @@ The `MenuRegistry` manages menu templates and handles callback routing:
 
 Different menu types support different media attachments:
 
-- **MenuTemplate** — Text-only menus
-- **PhotoMenuTemplate** — Menus with photos
-- **VideoMenuTemplate** — Menus with videos
-- **AnimationMenuTemplate** — Menus with GIF/animations
-- **AudioMenuTemplate** — Menus with audio files
-- **DocumentMenuTemplate** — Menus with documents
+- **MenuBuilder** — Text-only menus
+- **PhotoMenuBuilder** — Menus with photos
+- **VideoMenuBuilder** — Menus with videos
+- **AnimationMenuBuilder** — Menus with GIF/animations
+- **AudioMenuBuilder** — Menus with audio files
+- **DocumentMenuBuilder** — Menus with documents
 
 You can convert between types using chainable methods like `.photo()`, `.video()`, etc.
 
@@ -96,7 +96,7 @@ You can convert between types using chainable methods like `.photo()`, `.video()
 ### Basic Menu with Callbacks
 
 ```ts
-const menu = new MenuTemplate("Choose an action:")
+const menu = new MenuBuilder("Choose an action:")
   .cb("Option 1", async (ctx) => {
     await ctx.reply("You selected option 1");
   })
@@ -114,7 +114,7 @@ registry.register("basic", menu);
 ### Menu with Media
 
 ```ts
-const photoMenu = new MenuTemplate("Check out this image!")
+const photoMenu = new MenuBuilder("Check out this image!")
   .photo("https://picsum.photos/800/600")
   .cb("Like", async (ctx) => {
     await ctx.reply("Thanks for liking!");
@@ -129,7 +129,7 @@ registry.register("photo", photoMenu);
 ### Menu with Mixed Button Types
 
 ```ts
-const mixedMenu = new MenuTemplate("Explore options:")
+const mixedMenu = new MenuBuilder("Explore options:")
   .cb("Settings", async (ctx) => {
     await ctx.reply("Opening settings...");
   })
@@ -157,7 +157,7 @@ const registry = new MenuRegistry({
 
 ## API Reference
 
-### MenuTemplate Methods
+### MenuBuilder Methods
 
 #### Button Methods
 
@@ -180,18 +180,18 @@ const registry = new MenuRegistry({
 
 #### Media Methods
 
-- `.photo(photo)` — Convert to PhotoMenuTemplate
-- `.video(video)` — Convert to VideoMenuTemplate
-- `.animation(animation)` — Convert to AnimationMenuTemplate
-- `.audio(audio)` — Convert to AudioMenuTemplate
-- `.document(document)` — Convert to DocumentMenuTemplate
+- `.photo(photo)` — Convert to PhotoMenuBuilder
+- `.video(video)` — Convert to VideoMenuBuilder
+- `.animation(animation)` — Convert to AnimationMenuBuilder
+- `.audio(audio)` — Convert to AudioMenuBuilder
+- `.document(document)` — Convert to DocumentMenuBuilder
 
 ### MenuRegistry Methods
 
-- `register(templateId, template)` — Register a menu template
-- `get(templateId)` — Retrieve a registered template
-- `has(templateId)` — Check if template exists
-- `menu(templateId)` — Render a menu from template
+- `register(templateId, builder)` — Register a menu builder
+- `get(templateId)` — Retrieve a registered builder
+- `has(templateId)` — Check if builder exists
+- `menu(templateId)` — Render a menu from builder
 - `middleware()` — Get the middleware function
 
 ## Development

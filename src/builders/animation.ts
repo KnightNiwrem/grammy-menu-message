@@ -1,18 +1,18 @@
 import type { Context, InputFile } from "../dep.ts";
-import { BaseMenuTemplate } from "./base.ts";
+import { BaseMenuBuilder } from "./base.ts";
 import { AnimationMenu } from "../menu/animation.ts";
 
 /**
- * AnimationMenuTemplate orchestrates menus that deliver an animation alongside
- * a keyboard built through the {@link BaseMenuTemplate} fluent API.
- * Provide an {@link InputFile} or URL for the media and optionally enrich it
- * with caption text via the constructor or {@link BaseMenuTemplate.addText}.
+ * AnimationMenuBuilder orchestrates menus that deliver an animation alongside
+ * a keyboard built through the {@link BaseMenuBuilder} fluent API.
+ * Provide a {@link InputFile} or URL for the animation and optionally add a caption
+ * with caption text via the constructor or {@link BaseMenuBuilder.addText}.
  *
  * @template C The grammY Context type
  *
  * @example
  * ```ts
- * const animationMenu = new AnimationMenuTemplate<Context>(
+ * const animationMenu = new AnimationMenuBuilder<Context>(
  *   "https://example.com/animation.gif",
  * )
  *   .addText("Choose an option:")
@@ -21,15 +21,15 @@ import { AnimationMenu } from "../menu/animation.ts";
  *   .url("Visit", "https://example.com");
  * ```
  */
-export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
+export class AnimationMenuBuilder<C extends Context> extends BaseMenuBuilder<C> {
   /** The animation media to be sent with the menu */
   animation: InputFile | string;
 
-  /** Differentiates what kind of MenuTemplate it is */
+  /** Differentiates what kind of MenuBuilder it is */
   readonly kind = "animation" as const;
 
   /**
-   * Creates a new AnimationMenuTemplate instance.
+   * Creates a new AnimationMenuBuilder instance.
    *
    * @param animation The animation file as InputFile or URL string
    * @param text Optional caption sent alongside the rendered animation
@@ -40,9 +40,9 @@ export class AnimationMenuTemplate<C extends Context> extends BaseMenuTemplate<C
   }
 
   /**
-   * Renders the template into an AnimationMenu with a fresh inline keyboard instance.
+   * Renders the builder into an AnimationMenu with a fresh inline keyboard instance.
    *
-   * @param templateMenuId Identifier for the menu template this was rendered from
+   * @param templateMenuId Identifier for the menu builder this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
    * @returns An AnimationMenu carrying the generated keyboard and optional text
    */

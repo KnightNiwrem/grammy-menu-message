@@ -1,18 +1,18 @@
 import type { Context, InputFile } from "../dep.ts";
-import { BaseMenuTemplate } from "./base.ts";
+import { BaseMenuBuilder } from "./base.ts";
 import { VideoMenu } from "../menu/video.ts";
 
 /**
- * VideoMenuTemplate creates menus that deliver a video along with a keyboard
- * assembled through {@link BaseMenuTemplate}'s fluent API.
+ * VideoMenuBuilder creates menus that deliver a video along with a keyboard
+ * assembled through {@link BaseMenuBuilder}'s fluent API.
  * Provide an {@link InputFile} or URL for the video and optionally add caption
- * text through the constructor or {@link BaseMenuTemplate.addText}.
+ * text through the constructor or {@link BaseMenuBuilder.addText}.
  *
  * @template C The grammY Context type
  *
  * @example
  * ```ts
- * const videoMenu = new VideoMenuTemplate<Context>(
+ * const videoMenu = new VideoMenuBuilder<Context>(
  *   "https://example.com/video.mp4",
  * )
  *   .addText("Choose an option:")
@@ -21,15 +21,15 @@ import { VideoMenu } from "../menu/video.ts";
  *   .url("Visit", "https://example.com");
  * ```
  */
-export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
+export class VideoMenuBuilder<C extends Context> extends BaseMenuBuilder<C> {
   /** The video media to be sent with the menu */
   video: InputFile | string;
 
-  /** Differentiates what kind of MenuTemplate it is */
+  /** Differentiates what kind of MenuBuilder it is */
   readonly kind = "video" as const;
 
   /**
-   * Creates a new VideoMenuTemplate instance.
+   * Creates a new VideoMenuBuilder instance.
    *
    * @param video The video file as InputFile or URL string
    * @param text Optional caption sent alongside the rendered video
@@ -40,9 +40,9 @@ export class VideoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   }
 
   /**
-   * Renders the template into a VideoMenu with a fresh inline keyboard instance.
+   * Renders the builder into a VideoMenu with a fresh inline keyboard instance.
    *
-   * @param templateMenuId Identifier for the menu template this was rendered from
+   * @param templateMenuId Identifier for the menu builder this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
    * @returns A VideoMenu carrying the generated keyboard and optional text
    */
