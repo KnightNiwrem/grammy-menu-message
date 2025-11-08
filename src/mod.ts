@@ -25,7 +25,7 @@ export { AudioMenu } from "./menu/audio.ts";
 export { DocumentMenu } from "./menu/document.ts";
 export { BaseMenuBuilder } from "./builders/base.ts";
 export type { BaseMenuBuilder as MenuBuilderType } from "./builders/base.ts";
-export { MenuBuilder } from "./builders/template.ts";
+export { MenuBuilder } from "./builders/builder.ts";
 export { PhotoMenuBuilder } from "./builders/photo.ts";
 export { VideoMenuBuilder } from "./builders/video.ts";
 export { AnimationMenuBuilder } from "./builders/animation.ts";

@@ -1,6 +1,6 @@
 import { Bot, Context, describe, expect, it } from "./deps.ts";
 import { MenuRegistry } from "../src/registry.ts";
-import { MenuBuilder } from "../src/builders/template.ts";
+import { MenuBuilder } from "../src/builders/builder.ts";
 
 describe("MenuRegistry", () => {
   describe("constructor", () => {
