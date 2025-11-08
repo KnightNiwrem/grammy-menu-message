@@ -1,6 +1,6 @@
 import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuBuilder } from "./base.ts";
-import { PhotoMenu } from "../menu/photo.ts";
+import { PhotoMenu } from "../menus/photo.ts";
 
 /**
  * PhotoMenuBuilder constructs menus that send a photo attachment while

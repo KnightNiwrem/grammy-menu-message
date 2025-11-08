@@ -1,6 +1,6 @@
 import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuBuilder } from "./base.ts";
-import { AudioMenu } from "../menu/audio.ts";
+import { AudioMenu } from "../menus/audio.ts";
 
 /**
  * AudioMenuBuilder wraps the generic menu builder with audio media support.

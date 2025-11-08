@@ -1,6 +1,6 @@
 import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuBuilder } from "./base.ts";
-import { Menu } from "../menu/menu.ts";
+import { Menu } from "../menus/menu.ts";
 import { AudioMenuBuilder } from "./audio.ts";
 import { PhotoMenuBuilder } from "./photo.ts";
 import { VideoMenuBuilder } from "./video.ts";

@@ -1,7 +1,7 @@
 import type { StorageAdapter, Transformer } from "./dep.ts";
 import type { Context } from "./dep.ts";
 import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
-import { BaseMenu, isMenu } from "./menu/base.ts";
+import { BaseMenu, isMenu } from "./menus/base.ts";
 import { createEmptyNavigationHistory, regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
 import { isMessage } from "./typeguards/message.ts";
 

@@ -16,13 +16,13 @@ export type {
   RenderedMenuData,
 } from "./types.ts";
 
-export { BaseMenu, isMenu } from "./menu/base.ts";
-export { Menu } from "./menu/menu.ts";
-export { PhotoMenu } from "./menu/photo.ts";
-export { VideoMenu } from "./menu/video.ts";
-export { AnimationMenu } from "./menu/animation.ts";
-export { AudioMenu } from "./menu/audio.ts";
-export { DocumentMenu } from "./menu/document.ts";
+export { BaseMenu, isMenu } from "./menus/base.ts";
+export { Menu } from "./menus/menu.ts";
+export { PhotoMenu } from "./menus/photo.ts";
+export { VideoMenu } from "./menus/video.ts";
+export { AnimationMenu } from "./menus/animation.ts";
+export { AudioMenu } from "./menus/audio.ts";
+export { DocumentMenu } from "./menus/document.ts";
 export { BaseMenuBuilder } from "./builders/base.ts";
 export type { BaseMenuBuilder as MenuBuilderType } from "./builders/base.ts";
 export { MenuBuilder } from "./builders/builder.ts";

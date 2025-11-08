@@ -3,7 +3,7 @@ import type { BaseMenuBuilder } from "./builders/base.ts";
 import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
 
 import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
-import { BaseMenu } from "./menu/base.ts";
+import { BaseMenu } from "./menus/base.ts";
 import { regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
 import { createMenuRegistryTransformer } from "./transformer.ts";
 

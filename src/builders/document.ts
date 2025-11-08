@@ -1,6 +1,6 @@
 import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuBuilder } from "./base.ts";
-import { DocumentMenu } from "../menu/document.ts";
+import { DocumentMenu } from "../menus/document.ts";
 
 /**
  * DocumentMenuBuilder produces menus that send a document attachment together

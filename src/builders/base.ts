@@ -8,7 +8,7 @@ import type {
 } from "../dep.ts";
 import type { MenuButton, MenuButtonHandler } from "../types.ts";
 
-import { BaseMenu } from "../menu/base.ts";
+import { BaseMenu } from "../menus/base.ts";
 
 export type Operation<C extends Context> =
   | { type: "nativeButton"; data: InlineKeyboardButton }

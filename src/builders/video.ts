@@ -1,6 +1,6 @@
 import type { Context, InputFile } from "../dep.ts";
 import { BaseMenuBuilder } from "./base.ts";
-import { VideoMenu } from "../menu/video.ts";
+import { VideoMenu } from "../menus/video.ts";
 
 /**
  * VideoMenuBuilder creates menus that deliver a video along with a keyboard
