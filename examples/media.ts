@@ -4,7 +4,7 @@
  * Run: BOT_TOKEN=your_token deno run --allow-env --allow-net examples/media.ts
  */
 import { Bot } from "./deps.ts";
-import { MenuRegistry, MenuTemplate } from "../src/mod.ts";
+import { MenuBuilder, MenuRegistry } from "../src/mod.ts";
 
 const token = Deno.env.get("BOT_TOKEN");
 if (!token) {
@@ -16,7 +16,7 @@ const bot = new Bot(token);
 const registry = new MenuRegistry();
 
 // Photo menu - converts text menu to photo menu
-const photoMenu = new MenuTemplate("Beautiful landscape 🏞️")
+const photoMenu = new MenuBuilder("Beautiful landscape 🏞️")
   .photo("https://picsum.photos/800/600")
   .cb("Like", async (ctx) => {
     await ctx.reply("Thanks for liking! ❤️");
@@ -28,7 +28,7 @@ const photoMenu = new MenuTemplate("Beautiful landscape 🏞️")
   .url("More Photos", "https://picsum.photos");
 
 // Video menu example
-const videoMenu = new MenuTemplate("Sample video")
+const videoMenu = new MenuBuilder("Sample video")
   .video("https://www.w3schools.com/html/mov_bbb.mp4")
   .cb("Like Video", async (ctx) => {
     await ctx.reply("Glad you liked it! 🎬");
@@ -40,7 +40,7 @@ const videoMenu = new MenuTemplate("Sample video")
   });
 
 // Animation menu example
-const animationMenu = new MenuTemplate("Animated GIF")
+const animationMenu = new MenuBuilder("Animated GIF")
   .animation("https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif")
   .cb("😂", async (ctx) => {
     await ctx.reply("Haha!");
@@ -50,7 +50,7 @@ const animationMenu = new MenuTemplate("Animated GIF")
   });
 
 // Main menu to access media menus
-const mainMenu = new MenuTemplate("Media Gallery 🎨")
+const mainMenu = new MenuBuilder("Media Gallery 🎨")
   .cb("📷 View Photo", async (ctx) => {
     const menu = registry.menu("photo");
     await ctx.reply("Loading photo...", { reply_markup: menu });

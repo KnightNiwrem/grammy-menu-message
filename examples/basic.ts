@@ -4,7 +4,7 @@
  * Run: BOT_TOKEN=your_token deno run --allow-env --allow-net examples/basic.ts
  */
 import { Bot } from "./deps.ts";
-import { MenuRegistry, MenuTemplate } from "../src/mod.ts";
+import { MenuBuilder, MenuRegistry } from "../src/mod.ts";
 
 const token = Deno.env.get("BOT_TOKEN");
 if (!token) {
@@ -16,7 +16,7 @@ const bot = new Bot(token);
 const registry = new MenuRegistry();
 
 // Main menu with callback buttons and URL buttons
-const mainMenu = new MenuTemplate("Welcome! Choose an option:")
+const mainMenu = new MenuBuilder("Welcome! Choose an option:")
   .cb("Say Hello", async (ctx) => {
     await ctx.reply("Hello! 👋");
   })

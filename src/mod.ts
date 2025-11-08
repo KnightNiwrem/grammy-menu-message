@@ -1,8 +1,8 @@
 /**
  * grammY Menu Message - A menu system for grammY bots
  *
- * Provides MenuTemplate for defining menu structures, MenuRegistry for managing
- * registered templates, and Menu for rendering inline keyboards with persistent
+ * Provides MenuBuilder for defining menu structures, MenuRegistry for managing
+ * registered builders, and Menu for rendering inline keyboards with persistent
  * navigation history support.
  *
  * @module
@@ -23,14 +23,14 @@ export { VideoMenu } from "./menu/video.ts";
 export { AnimationMenu } from "./menu/animation.ts";
 export { AudioMenu } from "./menu/audio.ts";
 export { DocumentMenu } from "./menu/document.ts";
-export { BaseMenuTemplate } from "./templates/base.ts";
-export type { BaseMenuTemplate as MenuTemplateType } from "./templates/base.ts";
-export { MenuTemplate } from "./templates/template.ts";
-export { PhotoMenuTemplate } from "./templates/photo.ts";
-export { VideoMenuTemplate } from "./templates/video.ts";
-export { AnimationMenuTemplate } from "./templates/animation.ts";
-export { AudioMenuTemplate } from "./templates/audio.ts";
-export { DocumentMenuTemplate } from "./templates/document.ts";
+export { BaseMenuBuilder } from "./builders/base.ts";
+export type { BaseMenuBuilder as MenuBuilderType } from "./builders/base.ts";
+export { MenuBuilder } from "./builders/template.ts";
+export { PhotoMenuBuilder } from "./builders/photo.ts";
+export { VideoMenuBuilder } from "./builders/video.ts";
+export { AnimationMenuBuilder } from "./builders/animation.ts";
+export { AudioMenuBuilder } from "./builders/audio.ts";
+export { DocumentMenuBuilder } from "./builders/document.ts";
 export { MenuRegistry } from "./registry.ts";
 export { createMenuRegistryTransformer } from "./transformer.ts";
 export { isInlineKeyboardButton } from "./typeguards/inline-keyboard-button.ts";

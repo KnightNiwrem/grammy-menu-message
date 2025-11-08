@@ -1,18 +1,18 @@
 import type { Context, InputFile } from "../dep.ts";
-import { BaseMenuTemplate } from "./base.ts";
+import { BaseMenuBuilder } from "./base.ts";
 import { PhotoMenu } from "../menu/photo.ts";
 
 /**
- * PhotoMenuTemplate constructs menus that send a photo attachment while
- * reusing the keyboard builder provided by {@link BaseMenuTemplate}.
- * Supply an {@link InputFile} or URL to the photo and optionally call
- * {@link BaseMenuTemplate.addText} to add a caption.
+ * PhotoMenuBuilder constructs menus that send a photo attachment while
+ * reusing the keyboard builder provided by {@link BaseMenuBuilder}.
+ * Pass in a {@link InputFile} or URL for the photo and optionally provide a
+ * {@link BaseMenuBuilder.addText} to add a caption.
  *
  * @template C The grammY Context type
  *
  * @example
  * ```ts
- * const photoMenu = new PhotoMenuTemplate<Context>(
+ * const photoMenu = new PhotoMenuBuilder<Context>(
  *   "https://example.com/photo.jpg",
  * )
  *   .addText("Choose an option:")
@@ -21,15 +21,15 @@ import { PhotoMenu } from "../menu/photo.ts";
  *   .url("Visit", "https://example.com");
  * ```
  */
-export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
+export class PhotoMenuBuilder<C extends Context> extends BaseMenuBuilder<C> {
   /** The photo media to be sent with the menu */
   photo: InputFile | string;
 
-  /** Differentiates what kind of MenuTemplate it is */
+  /** Differentiates what kind of MenuBuilder it is */
   readonly kind = "photo" as const;
 
   /**
-   * Creates a new PhotoMenuTemplate instance.
+   * Creates a new PhotoMenuBuilder instance.
    *
    * @param photo The photo file as InputFile or URL string
    * @param text Optional caption sent alongside the rendered photo
@@ -40,9 +40,9 @@ export class PhotoMenuTemplate<C extends Context> extends BaseMenuTemplate<C> {
   }
 
   /**
-   * Renders the template into a PhotoMenu with a fresh inline keyboard instance.
+   * Renders the builder into a PhotoMenu with a fresh inline keyboard instance.
    *
-   * @param templateMenuId Identifier for the menu template this was rendered from
+   * @param templateMenuId Identifier for the menu builder this was rendered from
    * @param renderedMenuId Unique identifier for this specific rendered menu instance
    * @returns A PhotoMenu carrying the generated keyboard and optional text
    */

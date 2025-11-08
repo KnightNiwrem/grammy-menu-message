@@ -16,7 +16,7 @@ export type Operation<C extends Context> =
   | { type: "row" };
 
 /**
- * BaseMenuTemplate is the abstract builder backing every menu template.
+ * BaseMenuBuilder is the abstract builder backing every menu builder.
  * Subclasses compose inline keyboards declaratively and later render them into
  * concrete menu objects with fresh callback payloads on each invocation.
  *
@@ -24,7 +24,7 @@ export type Operation<C extends Context> =
  *
  * @example
  * ```ts
- * const template = new MenuTemplate<Context>()
+ * const builder = new MenuBuilder<Context>()
  *   .addText("Choose an option:")
  *   .cb("Option 1", async (ctx) => ctx.answerCallbackQuery("1"))
  *   .cb("Option 2", async (ctx) => ctx.answerCallbackQuery("2"))
@@ -32,15 +32,15 @@ export type Operation<C extends Context> =
  *   .url("Visit Website", "https://example.com");
  * ```
  */
-export abstract class BaseMenuTemplate<C extends Context> {
+export abstract class BaseMenuBuilder<C extends Context> {
   protected operations: Operation<C>[] = [];
   /** Optional text payload that accompanies the rendered menu */
   text?: string;
 
   /**
-   * Creates a new BaseMenuTemplate instance.
+   * Creates a new BaseMenuBuilder instance.
    *
-   * @param text Optional text or caption forwarded when the template renders a menu
+   * @param text Optional text or caption forwarded when the builder renders a menu
    */
   constructor(text?: string) {
     this.text = text;

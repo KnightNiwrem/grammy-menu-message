@@ -1,5 +1,5 @@
 import type { MiddlewareFn, StorageAdapter } from "./dep.ts";
-import type { BaseMenuTemplate } from "./templates/base.ts";
+import type { BaseMenuBuilder } from "./builders/base.ts";
 import type { NavigationHistoryData, RenderedMenuData } from "./types.ts";
 
 import { Composer, Context, MemorySessionStorage, nanoid } from "./dep.ts";
@@ -8,7 +8,7 @@ import { regularNavStorageKey, renderedMenuStorageKey } from "./utils.ts";
 import { createMenuRegistryTransformer } from "./transformer.ts";
 
 /**
- * MenuRegistry manages registered menu templates and their rendered instances.
+ * MenuRegistry manages registered menu builders and their rendered instances.
  * Provides middleware to handle menu callback queries and automatic persistence
  * of navigation history when storage adapters are configured.
  *
@@ -17,17 +17,17 @@ import { createMenuRegistryTransformer } from "./transformer.ts";
  * @example
  * ```typescript
  * const registry = new MenuRegistry<Context>();
- * const template = new BaseMenuTemplate<Context>()
+ * const builder = new BaseMenuBuilder<Context>()
  *   .cb("Button", async (ctx) => {
  *     await ctx.answerCallbackQuery("Clicked!");
  *   })
  *   .row();
- * registry.register("main", template);
+ * registry.register("main", builder);
  * bot.use(registry.middleware());
  * ```
  */
 export class MenuRegistry<C extends Context> {
-  private templates: Map<string, BaseMenuTemplate<C>> = new Map();
+  private templates: Map<string, BaseMenuBuilder<C>> = new Map();
 
   private composer: Composer<C>;
 
@@ -153,37 +153,37 @@ export class MenuRegistry<C extends Context> {
   }
 
   /**
-   * Registers a MenuTemplate with the given template ID.
-   * Templates must be registered before they can be rendered via the menu() method.
+   * Registers a MenuBuilder with the given template ID.
+   * Builders must be registered before they can be rendered via the menu() method.
    *
-   * @param templateMenuId The unique identifier for the menu template
-   * @param template The BaseMenuTemplate instance to register
+   * @param templateMenuId The unique identifier for the menu builder
+   * @param template The BaseMenuBuilder instance to register
    *
    * @example
    * ```typescript
-   * const template = new BaseMenuTemplate<Context>().cb("Hello", handler);
-   * registry.register("greeting", template);
+   * const builder = new BaseMenuBuilder<Context>().cb("Hello", handler);
+   * registry.register("greeting", builder);
    * ```
    */
-  register(templateMenuId: string, template: BaseMenuTemplate<C>): void {
+  register(templateMenuId: string, template: BaseMenuBuilder<C>): void {
     this.templates.set(templateMenuId, template);
   }
 
   /**
-   * Retrieves a registered BaseMenuTemplate by its ID.
+   * Retrieves a registered BaseMenuBuilder by its ID.
    *
-   * @param templateMenuId The unique identifier of the menu template
-   * @returns The BaseMenuTemplate instance, or undefined if not found
+   * @param templateMenuId The unique identifier of the menu builder
+   * @returns The BaseMenuBuilder instance, or undefined if not found
    *
    * @example
    * ```typescript
-   * const template = registry.get("main");
-   * if (template) {
-   *   // Use the template
+   * const builder = registry.get("main");
+   * if (builder) {
+   *   // Use the builder
    * }
    * ```
    */
-  get(templateMenuId: string): BaseMenuTemplate<C> | undefined {
+  get(templateMenuId: string): BaseMenuBuilder<C> | undefined {
     return this.templates.get(templateMenuId);
   }
 

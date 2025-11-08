@@ -19,7 +19,7 @@ export type MenuButtonHandler<C extends Context> = (
 /**
  * Represents a callback button with an optional handler function and payload.
  * Extends InlineKeyboardButton to include middleware capabilities for menu buttons
- * created via MenuTemplate.cb(), while allowing native button types from other methods.
+ * created via MenuBuilder.cb(), while allowing native button types from other methods.
  *
  * @template C The grammY Context type
  */
